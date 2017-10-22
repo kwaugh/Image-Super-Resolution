@@ -100,6 +100,8 @@ better results than what is currently achievable with the published methods.
 \section{Sources of Data}
 Image SR techniques are self-supervised in that explicit annotation of data is unneeded. The original image can just be downsized before it is fed into the SR network. The SR output can then be compared to the original image. However, in order to integrate semantic segmentation knowledge, we need to obtain object masks from some location. There are two ways that we plan on going about this. The first is to use datasets that already include these masks such as the cityscape dataset. The other approach is to use existing segmentation networks like in \cite{FullyConvolutionalSS} to generate the mask before the downsized image is fed into our SR network. We plan to compare the results of the two to see is the more accurate human annotated segmentations are required to get good results from our technique.
 
+To compare our results against those obtained from other papers, we plan on using standard evaluation datasets that are used in \cite{SRGAN}. These include Set5 \cite{Set5}, Set14 \cite{Set14}, and BSD100 which is the a subset of BSD300 \cite{BSD300}
+
 %-------------------------------------------------------------------------
 
 \section{Partner Plan}
