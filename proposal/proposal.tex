@@ -58,11 +58,12 @@ important problem as hardware continues to improve. With higher resolution
 displays and cameras more available today than ever before, it would be nice if
 we could convert old media to the same resolution standards as current photos
 and video. Naive methods of upsampling using bicubic interpolation introduce
-many artifacts and produce visually displeasing images. With the increase in
-popularity of deep networks sparked by work from Krizhevsky et al.
-\cite{AlexNet}, it appears that some variant of a deep network could provide
-good results for this task. We also plan to combine semantic segmentation with
-state-of-the-art SR techniques to provide for better results.
+many artifacts and produce visually displeasing images. Deep networks have
+greatly increased in popularity for instance and category recognition, sparked
+by work from Krizhevsky et al. \cite{AlexNet}. SR methods based on deep networks
+have also achieved considerable success in SR tasks. We plan to combine
+semantic segmentation features with state-of-the-art SR techniques in order to
+achieve sharper SR solutions.
 
 %-------------------------------------------------------------------------
 
@@ -73,13 +74,13 @@ techniques: using a more conventional CNN for upsampling
 generative adversarial network (GAN) \cite{GAN}. Typically, the CNN approaches
 attempt to minimize the per-pixel loss between the upsampled output image and
 the original unmodified image. The error metric frequently used is peak
-signal-to-noise ration (PSNR). However, when this is applied directly on the
+signal-to-noise ratio (PSNR). However, when this is applied directly on the
 pixel space, this often encourages the network to make soft changes in the
 upsampled image rather than generate the high-frequency changes often found in
-real images. GAN based approaches like in \cite{SRGAN} attempt to overcome this
-by using an adversarial network. Though they get lower PSNR values, the images
-often look more realistic, which suggests that some other metric should be used
-to get better results.
+real images. GAN based approaches like the work of Ledig et al. \cite{SRGAN}
+attempt to overcome this by using an adversarial network. Though they get lower
+PSNR values, the images often look more realistic, which suggests that some
+other metric should be used to get better results.
 
 In \cite{ImageSynthesis}, Chen and Koltun experiment with using semantic
 segmentation from the Cityscapes dataset \cite{Cityscapes} to perform
@@ -95,8 +96,30 @@ better results than what is currently achievable with the published methods.
 %-------------------------------------------------------------------------
 
 \section{Experimental Plan}
-We will build upon the open-source implementation of \cite{SRGAN} which uses
-TensorFlow 1.2.
+We will build upon the open-source implementation of Ledig et al. \cite{SRGAN}
+which uses TensorFlow 1.2. Our first task will be to apply the unmodified
+network to a dataset of our choosing which includes semantic segmentation
+labels. These results will constitute our baseline. We will use the same
+measures to evaluate our SR method: PSNR, structural similarity (SSIM), and
+mean opinion score (MOS). For MOS, we will conduct a survey as in \cite{SRGAN}
+and ask raters to rate images produced by different methods on a scale of 1 to
+5 in terms of quality. While the original paper uses 26 raters, we will likely
+use fewer raters to ease the logistical burden. As an additional baseline, we
+will also measure the performances of the nearest neighbor and bicubic
+interpolation methods.
+
+Our second and main task will be to modify the SRResNet and SR-GAN networks to
+utilize semantic segmentation features, as discussed in the technical plan. If
+we have enough time, we will also experiment with adding these additional
+features to the discriminator in the SR-GAN network to see if it aids training.
+The measurements from these modified approaches will indicate the effectiveness
+of our method.
+
+In addition to using a dataset with semantic segmentation labels, we will also
+use datasets without such labels included and generate the labels manually
+using an out-of-the-box solution. This will allow us to compare how
+human-annotated segmentation features compare to machine-generated segmentation
+features.
 
 %-------------------------------------------------------------------------
 
@@ -108,15 +131,15 @@ ground truth. However, in order to integrate semantic segmentation knowledge,
 we need to obtain the semantic layout for each image. There are two ways that we
 plan on going about this. The first is to use datasets that already include
 the segmentation such as the Cityscapes \cite{Cityscapes} dataset. The other
-approach is to use existing segmentation networks like in
+approach is to use existing segmentation networks as in
 \cite{FullyConvolutionalSS} to generate the segmentation before the downsized
 image is fed into our SR network. We plan to compare the results of the two to
-see if the more accurate human annotated segmentations are required to get good
+see if the more accurate human-annotated segmentations are required to get good
 results from our technique, or if a fully-automated SR approach can be achieved.
 
 To compare our results against those obtained from other papers, we plan on
 using standard evaluation datasets that are used in \cite{SRGAN}. These include
-Set5 \cite{Set5}, Set14 \cite{Set14}, and BSD100 which is the a subset of
+Set5 \cite{Set5}, Set14 \cite{Set14}, and BSD100 which is a subset of
 BSD300 \cite{BSD300}
 
 %-------------------------------------------------------------------------
@@ -141,9 +164,9 @@ in \cite{ResNet} with regards to learning identity mappings. However, the
 authors found that it was often difficult for networks to learn such mappings.
 We predict that adding the semantic segmentation data explicitly to the network
 will allow it to make more intelligent decisions along object boundaries. We
-expect this will help provide more crisp edges. Because of the success with
-using semantic masks at various resolutions in \cite{ImageSynthesis}, we expect
-that our results will be better at high upsampling factors.
+expect this will help provide crisper edges. Because of the success with using
+semantic masks at various resolutions in \cite{ImageSynthesis}, we expect that
+our results will be better at high upsampling factors.
 
 {\small
 \bibliographystyle{ieee}
