@@ -65,7 +65,7 @@ have also achieved considerable success in SR tasks. We plan to combine
 semantic segmentation features with state-of-the-art SR techniques in order to
 achieve sharper SR solutions.
 
-%-------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 
 \section{Related Work}
 Prior work involving image synthesis with deep networks involves one of two
@@ -89,11 +89,18 @@ papers published that attempt to merge together this explicit semantic data
 with a SR technique for better results. We believe that this will provide for
 better results than what is currently achievable with the published methods.
 
-%-------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 
 \section{Technical Plan}
+The authors of \cite{SRGAN} have their code for their SRGAN network available
+online. We will use this code as a starting point and modify it to include our
+semantic segmentation data from the datasets or out-of-the-box segmentation
+networks. One method we will use for integration this additional data will be
+to concatenate the segmentation data onto the feature maps of the early layers
+in the network. This will be evaluated on both the traditional ResNet variant
+that the authors introduce as well as the GAN version.  
 
-%-------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 
 \section{Experimental Plan}
 We will build upon the open-source implementation of Ledig et al. \cite{SRGAN}
@@ -108,10 +115,10 @@ use fewer raters to ease the logistical burden. As an additional baseline, we
 will also measure the performances of the nearest neighbor and bicubic
 interpolation methods.
 
-Our second and main task will be to modify the SRResNet and SR-GAN networks to
+Our second and main task will be to modify the SRResNet and SRGAN networks to
 utilize semantic segmentation features, as discussed in the technical plan. If
 we have enough time, we will also experiment with adding these additional
-features to the discriminator in the SR-GAN network to see if it aids training.
+features to the discriminator in the SRGAN network to see if it aids training.
 The measurements from these modified approaches will indicate the effectiveness
 of our method.
 
@@ -121,7 +128,12 @@ using an out-of-the-box solution. This will allow us to compare how
 human-annotated segmentation features compare to machine-generated segmentation
 features.
 
-%-------------------------------------------------------------------------
+We will experiment with adding the segmentation data at multiple places in the
+network. The most basic solution would be to add it onto the feature maps at
+the earliest layers in the network. However, we plan to evaluate the network
+with the segmentations included at different locations and multiple locations.
+
+%------------------------------------------------------------------------------
 
 \section{Sources of Data}
 Image SR techniques are self-supervised in that explicit annotation of data is
@@ -142,7 +154,7 @@ using standard evaluation datasets that are used in \cite{SRGAN}. These include
 Set5 \cite{Set5}, Set14 \cite{Set14}, and BSD100 which is a subset of
 BSD300 \cite{BSD300}
 
-%-------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 
 \section{Partner Plan}
 For the programming portion of the project, we plan to pair-program and
@@ -152,7 +164,7 @@ equal number of experiments. The report will be written collaboratively. The
 person with more expertise on a given section will lead writing for that
 section.
 
-%-------------------------------------------------------------------------
+%------------------------------------------------------------------------------
 
 \section{Speculation of Results}
 Current state-of-the-art semantic segmentation methods already involve CNNs.
