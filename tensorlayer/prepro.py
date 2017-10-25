@@ -233,7 +233,7 @@ def crop(x, wrg, hrg, is_random=False, row_index=0, col_index=1, channel_index=2
         Index of row, col and channel, default (0, 1, 2), for theano (1, 2, 0).
     """
     h, w = x.shape[row_index], x.shape[col_index]
-    assert (h > hrg) and (w > wrg), "The size of cropping should smaller than the original image"
+    assert (h >= hrg) and (w >= wrg), "The size of cropping should smaller than the original image"
     if is_random:
         h_offset = int(np.random.uniform(0, h-hrg) -1)
         w_offset = int(np.random.uniform(0, w-wrg) -1)
