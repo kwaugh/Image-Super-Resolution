@@ -28,8 +28,7 @@ config.TRAIN.decay_every = int(config.TRAIN.n_epoch / 2)
 
 # Streetview dataset
 config.TRAIN.hr_img_path = '/media/kwaugh/RAID/Documents/cs395t_deep/StreetView/leftImg8bit/train/'
-# they're the same
-config.TRAIN.lr_img_path = '/media/kwaugh/RAID/Documents/cs395t_deep/StreetView/leftImg8bit/train/'
+# config.TRAIN.lr_img_path = '/media/kwaugh/RAID/Documents/cs395t_deep/StreetView/leftImg8bit/train/'
 
 config.VALID = edict()
 ## test set location

@@ -45,7 +45,7 @@ def read_all_imgs(img_list, path='', n_threads=4):
 
 def read_all_imgs_bicubic(img_list, path='', n_threads=4):
     """ Returns all images in array by given path and name of each image file. """
-    """ Downscales the image by 4x then upscales using bicubic interpolation"""
+    """ Downscales the image by 4x using bicubic interpolation"""
     imgs = []
     # remove extra so that we have full batches
     rem = len(img_list) % config.TRAIN.batch_size
@@ -53,7 +53,7 @@ def read_all_imgs_bicubic(img_list, path='', n_threads=4):
         b_imgs_list = img_list[idx : idx + n_threads]
         b_imgs = tl.prepro.threading_data(
             b_imgs_list,
-            fn=lambda file_name, path: upsample_fn(downsample_fn(get_imgs_fn(file_name, path))),
+            fn=lambda file_name, path: downsample_fn(get_imgs_fn(file_name, path)),
             path=path)
         # print(b_imgs.shape)
         imgs.extend(b_imgs)
@@ -71,7 +71,7 @@ def train():
 
     ###====================== PRE-LOAD DATA ===========================###
     train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
-    train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
+    # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
     valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
     valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
 
