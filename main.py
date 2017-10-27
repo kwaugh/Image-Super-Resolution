@@ -53,7 +53,7 @@ def read_all_imgs_bicubic(img_list, path='', n_threads=4):
         b_imgs_list = img_list[idx : idx + n_threads]
         b_imgs = tl.prepro.threading_data(
             b_imgs_list,
-            fn=lambda file_name, path: downsample_fn(get_imgs_fn(file_name, path)),
+            fn=lambda file_name, path: downsample_preserve_aspect_ratio_fn(get_imgs_fn(file_name, path)),
             path=path)
         # print(b_imgs.shape)
         imgs.extend(b_imgs)
@@ -279,11 +279,14 @@ def evaluate():
     valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
     valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
 
+    print('valid_hr_img_list:', len(valid_hr_img_list))
+    print('valid_lr_img_list:', len(valid_lr_img_list))
+
     ## If your machine have enough memory, please pre-load the whole train set.
     # train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
     # for im in train_hr_imgs:
     #     print(im.shape)
-    valid_lr_imgs = read_all_imgs(valid_lr_img_list, path=config.VALID.lr_img_path, n_threads=4)
+    valid_lr_imgs = read_all_imgs_bicubic(valid_lr_img_list, path=config.VALID.lr_img_path, n_threads=4)
     # for im in valid_lr_imgs:
     #     print(im.shape)
     valid_hr_imgs = read_all_imgs(valid_hr_img_list, path=config.VALID.hr_img_path, n_threads=4)
@@ -312,17 +315,20 @@ def evaluate():
 
     ###======================= EVALUATION =============================###
     start_time = time.time()
-    out = sess.run(net_g.outputs, {t_image: [valid_lr_img]})
-    print("took: %4.4fs" % (time.time() - start_time))
+    for i in range(len(valid_lr_imgs)):
+        valid_lr_img = valid_lr_imgs[i]
+        valid_hr_img = crop_square(valid_hr_imgs[i])
+        out = sess.run(net_g.outputs, {t_image: [valid_lr_img]})
+        print("took: %4.4fs" % (time.time() - start_time))
 
-    print("LR size: %s /  generated HR size: %s" % (size, out.shape)) # LR size: (339, 510, 3) /  gen HR size: (1, 1356, 2040, 3)
-    print("[*] save images")
-    tl.vis.save_image(out[0], save_dir+'/valid_gen.png')
-    tl.vis.save_image(valid_lr_img, save_dir+'/valid_lr.png')
-    tl.vis.save_image(valid_hr_img, save_dir+'/valid_hr.png')
+        print("LR size: %s /  generated HR size: %s" % (size, out.shape)) # LR size: (339, 510, 3) /  gen HR size: (1, 1356, 2040, 3)
+        print("[*] save images")
+        tl.vis.save_image(out[0], save_dir+'/valid_'+str(i)+'gen.png')
+        tl.vis.save_image(valid_lr_img, save_dir+'/valid_'+str(i)+'lr.png')
+        tl.vis.save_image(valid_hr_img, save_dir+'/valid_'+str(i)+'hr.png')
 
-    out_bicu = scipy.misc.imresize(valid_lr_img, [size[0]*4, size[1]*4], interp='bicubic', mode=None)
-    tl.vis.save_image(out_bicu, save_dir+'/valid_bicubic.png')
+        out_bicu = scipy.misc.imresize(valid_lr_img, [size[0]*4, size[1]*4], interp='bicubic', mode=None)
+        tl.vis.save_image(out_bicu, save_dir+'/valid_'+str(i)+'bicubic.png')
 
 if __name__ == '__main__':
     import argparse

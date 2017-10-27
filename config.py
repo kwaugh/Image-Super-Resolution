@@ -18,7 +18,8 @@ config.TRAIN.n_epoch_init = 10 # originally was 100
     # config.TRAIN.decay_every_init = int(config.TRAIN.n_epoch_init / 2)
 
 ## adversarial learning (SRGAN)
-config.TRAIN.n_epoch = 200 # originally was 2000
+# 80 epochs takes about 12 hours
+config.TRAIN.n_epoch = 80 # originally was 2000
 config.TRAIN.lr_decay = 0.1
 config.TRAIN.decay_every = int(config.TRAIN.n_epoch / 2)
 
