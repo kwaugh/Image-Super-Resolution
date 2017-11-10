@@ -16,6 +16,7 @@ import segment_helper
 from model import *
 from utils import *
 from config import config, log_config
+from PIL import Image
 
 ###====================== HYPER-PARAMETERS ===========================###
 ## Adam
@@ -66,7 +67,9 @@ def read_all_segs(img_list, path='', segment_suffix='.png', n_threads=4):
     segs_list = load_seg_file_list(img_list, config.TRAIN.segment_suffix)
 
     def load_seg_features(file_name, path):
-        label_im = downsample_preserve_aspect_ratio_fn(get_imgs_fn(file_name, path))
+        label_im = Image.open(os.path.join(path, file_name)).convert('RGB')
+        w, h = label_im.size
+        label_im.resize((w // 2, h // 2), resample=Image.NEAREST)
         return segment_helper.label_to_one_hot(label_im)
 
     rem = len(segs_list) % config.TRAIN.batch_size
@@ -75,7 +78,7 @@ def read_all_segs(img_list, path='', segment_suffix='.png', n_threads=4):
         b_segs = tl.prepro.threading_data(b_segs_list, fn=load_seg_features, path=path)
         # print(b_segs.shape)
         segs.extend(b_segs)
-        print('read %d from %s' % len(segs), path)
+        print('read %d from %s' % (len(segs), path))
     return segs
 
 

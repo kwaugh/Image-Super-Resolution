@@ -92,9 +92,6 @@ def label_to_one_hot(im):
     for x in range(w):
         for y in range(h):
             color = im.getpixel((x, y))
-            if color not in color2Id:
-                sys.stderr.write('Unknown color: {}\n'.format(color))
-                sys.exit(1)
             one_hot[x][y][color2Id[color]] = 1
     return one_hot
 

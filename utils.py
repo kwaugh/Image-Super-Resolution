@@ -18,7 +18,7 @@ def get_imgs_fn(file_name, path, interp='bicubic'):
     # return scipy.misc.imread(path + file_name).astype(np.float)
 
     return imresize(
-            scipy.misc.imread(path + file_name, mode='RGB'),
+            scipy.misc.imread(os.path.join(path, file_name), mode='RGB'),
             0.5,
             interp=interp,
             mode=None)
