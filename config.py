@@ -30,6 +30,8 @@ config.TRAIN.decay_every = int(config.TRAIN.n_epoch / 2)
 # Streetview dataset
 config.TRAIN.hr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/train/'
 # config.TRAIN.lr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/train/'
+config.TRAIN.segment_path = '/home/paul/dev/cs381v/Image-Super-Resolution/gtFine/train'
+config.TRAIN.segment_suffix = 'gtFine_color.png'
 
 config.VALID = edict()
 ## test set location

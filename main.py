@@ -12,6 +12,7 @@ import logging, scipy
 
 import tensorflow as tf
 import tensorlayer as tl
+import segment_helper
 from model import *
 from utils import *
 from config import config, log_config
@@ -60,6 +61,24 @@ def read_all_imgs_bicubic(img_list, path='', n_threads=4):
         print('read %d from %s' % (len(imgs), path))
     return imgs
 
+def read_all_segs(img_list, path='', segment_suffix='.png', n_threads=4):
+    segs = []
+    segs_list = load_seg_file_list(img_list, config.TRAIN.segment_suffix)
+
+    def load_seg_features(file_name, path):
+        label_im = downsample_preserve_aspect_ratio_fn(get_imgs_fn(file_name, path))
+        return segment_helper.label_to_one_hot(label_im)
+
+    rem = len(segs_list) % config.TRAIN.batch_size
+    for idx in range(0, len(segs_list) - rem, n_threads):
+        b_segs_list = segs_list[idx : idx + n_threads]
+        b_segs = tl.prepro.threading_data(b_segs_list, fn=load_seg_features, path=path)
+        # print(b_segs.shape)
+        segs.extend(b_segs)
+        print('read %d from %s' % len(segs), path)
+    return segs
+
+
 def train():
     ## create folders to save result images and trained model
     save_dir_ginit = "samples/{}_ginit".format(tl.global_flag['mode'])
@@ -77,6 +96,7 @@ def train():
 
     ## If your machine have enough memory, please pre-load the whole train set.
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
+    train_segs = read_all_segs(train_hr_img_list, path=config.TRAIN.segment_path, segment_suffix=config.TRAIN.segment_suffix, n_threads=4)
     # for im in train_hr_imgs:
     #     print(im.shape)
     valid_lr_imgs = read_all_imgs_bicubic(valid_lr_img_list, path=config.VALID.lr_img_path, n_threads=4)

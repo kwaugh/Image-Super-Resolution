@@ -1,6 +1,8 @@
 # Copyright (c) 2017 Hao Dong.
 # Most code in this file was borrowed from https://github.com/zsdonghao/SRGAN
 
+import os
+import sys
 import tensorflow as tf
 import tensorlayer as tl
 from tensorlayer.prepro import *
@@ -11,14 +13,14 @@ from tensorlayer.prepro import *
 import scipy
 import numpy as np
 
-def get_imgs_fn(file_name, path):
+def get_imgs_fn(file_name, path, interp='bicubic'):
     """ Input an image path and name, return an image array """
     # return scipy.misc.imread(path + file_name).astype(np.float)
 
     return imresize(
             scipy.misc.imread(path + file_name, mode='RGB'),
             0.5,
-            interp='bicubic',
+            interp=interp,
             mode=None)
 
     # img = scipy.misc.imread(path + file_name, mode='RGB')
@@ -54,3 +56,20 @@ def downsample_preserve_aspect_ratio_fn(x):
 
 def upsample_fn(x):
     return imresize(x, size=[384, 384], interp='bicubic', mode=None)
+
+# Given a cityscapes image path, remove the type and ext
+# Input: dataset_dir/train/aachen_aachen_000000_000019_leftImg8bit.png
+# Output: aachen_aachen_000000_000019
+def get_frame_key(path):
+    filename = os.path.basename(path)
+    elems = filename.split('_')
+    if len(elems) < 5:
+        sys.stderr.write('Unknown image filename format: {}\n'.format(path))
+    return '_'.join(elems[:4])
+
+def load_seg_file_list(img_list, segment_suffix):
+    files = []
+    for img_path in img_list:
+        seg_filename = '{}_{}'.format(get_frame_key(img_path), segment_suffix)
+        files.append(seg_filename)
+    return files
