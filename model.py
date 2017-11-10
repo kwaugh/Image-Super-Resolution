@@ -228,6 +228,7 @@ def Vgg19_simple_api(rgb, reuse):
     with tf.variable_scope("VGG19", reuse=reuse) as vs:
         start_time = time.time()
         print("build model started")
+        tl.layers.set_name_reuse(reuse)
         rgb_scaled = rgb * 255.0
         # Convert RGB to BGR
         if tf.__version__ <= '0.11':

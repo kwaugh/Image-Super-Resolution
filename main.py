@@ -322,7 +322,7 @@ def train_srresnet():
     ###============================= LOAD VGG ===============================###
     vgg19_npy_path = "vgg19.npy"
     if not os.path.isfile(vgg19_npy_path):
-        print("Please download vgg19.npz from : https://github.com/machrisaa/tensorflow-vgg")
+        print("Please download vgg19.npy from : https://github.com/machrisaa/tensorflow-vgg")
         exit()
     npz = np.load(vgg19_npy_path, encoding='latin1').item()
 
@@ -540,7 +540,7 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--mode', type=str, default='srgan', help='srgan, evaluate')
+    parser.add_argument('--mode', type=str, default='srgan', help='srgan, srresnet, evaluate_srgan, evaluate_srresnet')
 
     args = parser.parse_args()
 

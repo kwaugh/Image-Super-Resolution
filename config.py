@@ -28,13 +28,16 @@ config.TRAIN.decay_every = int(config.TRAIN.n_epoch / 2)
 # config.TRAIN.lr_img_path = 'data2017/DIV2K_train_LR_bicubic/X4/'
 
 # Streetview dataset
-config.TRAIN.hr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/train/'
+config.TRAIN.hr_img_path = '/work/05150/pchoi/maverick/leftImg8bit/train/'
+# config.TRAIN.hr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/train/'
 # config.TRAIN.lr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/train/'
 
 config.VALID = edict()
 ## test set location
-config.VALID.hr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/val/'
-config.VALID.lr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/val/'
+config.VALID.hr_img_path = '/work/05150/pchoi/maverick/leftImg8bit/val/'
+config.VALID.lr_img_path = '/work/05150/pchoi/maverick/leftImg8bit/val/'
+# config.VALID.hr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/val/'
+# config.VALID.lr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/val/'
 
 def log_config(filename, cfg):
     with open(filename, 'w') as f:
