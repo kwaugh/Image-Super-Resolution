@@ -62,6 +62,20 @@ def read_all_imgs_bicubic(img_list, path='', n_threads=4):
         print('read %d from %s' % (len(imgs), path))
     return imgs
 
+def read_all_segs(seg_list, path='', n_threads=4):
+    """ Loads all preprocessed segs into memory. """
+    segs = []
+    rem = len(seg_list) % config.TRAIN.batch_size
+    for idx in range(0, len(seg_list) - rem, n_threads):
+        b_segs_list = seg_list[idx : idx + n_threads]
+        b_segs = tl.prepro.threading_data(
+            b_segs_list,
+            fn=lambda file_name, path: segment_helper.load_one_hot(file_name, path),
+            path=path)
+        segs.extend(b_segs)
+        print('read %d from %s' % (len(segs), path))
+
+
 def train():
     ## create folders to save result images and trained model
     save_dir_ginit = "samples/{}_ginit".format(tl.global_flag['mode'])
@@ -72,16 +86,17 @@ def train():
     tl.files.exists_or_mkdir(checkpoint_dir)
 
     ###====================== PRE-LOAD DATA ===========================###
-    train_segs_list = sorted(tl.files.load_file_list(path=config.TRAIN.segment_preprocessed_path, regx='.*.npy', printable=False))[:10]
-    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))[:10]
+    train_segs_list = sorted(tl.files.load_file_list(path=config.TRAIN.segment_preprocessed_path, regx='.*.npy', printable=False))
+    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
     # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
-    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))[:10]
-    valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))[:10]
+    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
+    valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
 
     ## If your machine have enough memory, please pre-load the whole train set.
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
     # for im in train_hr_imgs:
     #     print(im.shape)
+    train_segs = read_all_segs(train_segs_list, path=config.TRAIN.segment_preprocessed_path, n_threads=4)
     valid_lr_imgs = read_all_imgs_bicubic(valid_lr_img_list, path=config.VALID.lr_img_path, n_threads=4)
     # for im in valid_lr_imgs:
     #     print(im.shape)

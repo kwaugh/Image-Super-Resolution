@@ -39,8 +39,8 @@ def save_all_segs(img_list, path='', save_path='', segment_suffix='.png', n_thre
         print('saved %d from %s' % (n_threads + idx, path))
 
 if __name__ == '__main__':
-    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))[:10]
-    # valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))[:10]
+    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
+    # valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
     save_all_segs(
             train_hr_img_list,
             path=config.TRAIN.segment_path,

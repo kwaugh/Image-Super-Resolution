@@ -71,6 +71,7 @@ def load_seg_file_list(img_list, segment_suffix):
     files = []
     for img_path in img_list:
         prefix = get_frame_key(img_path)
+        prefix = prefix[0:-16]
         seg_filename = '{}_{}'.format(prefix, segment_suffix)
         files.append(seg_filename)
     return files

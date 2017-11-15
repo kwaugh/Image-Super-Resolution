@@ -28,25 +28,17 @@ config.TRAIN.decay_every = int(config.TRAIN.n_epoch / 2)
 # config.TRAIN.lr_img_path = 'data2017/DIV2K_train_LR_bicubic/X4/'
 
 # Streetview dataset
-# config.TRAIN.hr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/train/'
 config.TRAIN.hr_img_path = 'leftImg8bit/train/'
-# config.TRAIN.lr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/train/'
-# config.TRAIN.segment_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/gtFine/train/'
 config.TRAIN.segment_path = 'gtFine/train'
 config.TRAIN.segment_suffix = 'gtFine_color.png'
-# config.TRAIN.segment_preprocessed_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/gtFine/train/preprocessed/'
 config.TRAIN.segment_preprocessed_path = 'gtFine/train/preprocessed'
 
 config.VALID = edict()
 ## test set location
-# config.VALID.hr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/val/'
 config.VALID.hr_img_path = 'leftImg8bit/val/'
-# config.VALID.lr_img_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/leftImg8bit/val/'
 config.VALID.lr_img_path = 'leftImg8bit/val/'
-# config.VALID.segment_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/gtFine/val/'
 config.VALID.segment_path = 'gtFine/val/'
 config.VALID.segment_suffix = 'gtFine_color.png'
-# config.VALID.segment_preprocessed_path = '/media/kwaugh/RAID/Documents/visual_recognition/final_project/StreetView/gtFine/val/preprocessed/'
 config.VALID.segment_preprocessed_path = 'gtFine/val/preprocessed/'
 
 def log_config(filename, cfg):
