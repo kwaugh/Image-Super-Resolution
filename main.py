@@ -563,7 +563,8 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--mode', type=str, default='srgan', help='srgan, evaluate')
+    parser.add_argument('--mode', type=str, default='srgan',
+            help='srgan, srresnet, evaluate-srgan, evaluate_srresnet')
 
     args = parser.parse_args()
 
