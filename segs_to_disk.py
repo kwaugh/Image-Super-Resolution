@@ -6,13 +6,19 @@ from config import *
 from utils import *
 from PIL import Image
 
-def save_to_disk(img, path, name):
-    with open(os.path.join(path, name) + '.pickle', 'wb') as f_out:
-        pickle.dump(img, f_out)
-
-def load_from_disk(path, name):
-    with open(os.path.join(path, name) + '.pickle', 'rb') as f_in:
-        return pickle.load(f_in)
+# Mirrors utils.downsample_preserve_aspect_ratio but takes pil images as input
+# Doing a resize, cropping, and then another resize is kinda weird but whatevs
+def downsample_and_crop(im, final_shape):
+    w, h = im.size
+    im = im.resize((w // 2, h // 2), resample=Image.NEAREST)
+    min_dim = min(h, w)
+    left = (w - min_dim) // 2
+    top = (h - min_dim) // 2
+    right = (w + min_dim) // 2
+    bottom = (h + min_dim) // 2
+    im = im.crop((left, top, right, bottom))
+    im = im.resize(final_shape, resample=Image.NEAREST)
+    return im
 
 def save_all_segs(img_list, path='', save_path='', segment_suffix='.png', n_threads=4):
     segs = []
@@ -20,12 +26,11 @@ def save_all_segs(img_list, path='', save_path='', segment_suffix='.png', n_thre
 
     def save_seg_features(file_name, path, save_path):
         label_im = Image.open(os.path.join(path, file_name)).convert('RGB')
-        w, h = label_im.size
-        label_im = label_im.resize((w // 4, h // 4), resample=Image.NEAREST)
-        save_to_disk(
+        label_im = downsample_and_crop(label_im, (96, 96))
+        segment_helper.save_one_hot(
                 segment_helper.label_to_one_hot(label_im),
                 save_path,
-                file_name)
+                get_frame_key(file_name) + '_seg.npy')
 
     rem = len(segs_list) % config.TRAIN.batch_size
     for idx in range(0, len(segs_list) - rem, n_threads):
@@ -35,7 +40,7 @@ def save_all_segs(img_list, path='', save_path='', segment_suffix='.png', n_thre
 
 if __name__ == '__main__':
     train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))[:10]
-    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))[:10]
+    # valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))[:10]
     save_all_segs(
             train_hr_img_list,
             path=config.TRAIN.segment_path,

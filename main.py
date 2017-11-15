@@ -62,26 +62,6 @@ def read_all_imgs_bicubic(img_list, path='', n_threads=4):
         print('read %d from %s' % (len(imgs), path))
     return imgs
 
-def read_all_segs(img_list, path='', segment_suffix='.png', n_threads=4):
-    segs = []
-    segs_list = load_seg_file_list(img_list, config.TRAIN.segment_suffix)
-
-    def load_seg_features(file_name, path):
-        label_im = Image.open(os.path.join(path, file_name)).convert('RGB')
-        w, h = label_im.size
-        label_im = label_im.resize((w // 4, h // 4), resample=Image.NEAREST)
-        return segment_helper.label_to_one_hot(label_im)
-
-    rem = len(segs_list) % config.TRAIN.batch_size
-    for idx in range(0, len(segs_list) - rem, n_threads):
-        b_segs_list = segs_list[idx : idx + n_threads]
-        b_segs = tl.prepro.threading_data(b_segs_list, fn=load_seg_features, path=path)
-        # print(b_segs.shape)
-        segs.extend(b_segs)
-        print('read %d from %s' % (len(segs), path))
-    return segs
-
-
 def train():
     ## create folders to save result images and trained model
     save_dir_ginit = "samples/{}_ginit".format(tl.global_flag['mode'])
@@ -92,13 +72,13 @@ def train():
     tl.files.exists_or_mkdir(checkpoint_dir)
 
     ###====================== PRE-LOAD DATA ===========================###
+    train_segs_list = sorted(tl.files.load_file_list(path=config.TRAIN.segment_preprocessed_path, regx='.*.npy', printable=False))[:10]
     train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))[:10]
     # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
     valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))[:10]
     valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))[:10]
 
     ## If your machine have enough memory, please pre-load the whole train set.
-    train_segs = read_all_segs(train_hr_img_list, path=config.TRAIN.segment_path, segment_suffix=config.TRAIN.segment_suffix, n_threads=4)
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
     # for im in train_hr_imgs:
     #     print(im.shape)
@@ -113,9 +93,10 @@ def train():
     ###========================== DEFINE MODEL ============================###
     ## train inference
     t_image = tf.placeholder('float32', [batch_size, 96, 96, 3], name='t_image_input_to_SRGAN_generator')
+    t_seg = tf.placeholder('int8', [batch_size, 96, 96, segment_helper.NUM_FEATURE_MAPS], name='t_seg_input_to_SRGAN_generator')
     t_target_image = tf.placeholder('float32', [batch_size, 384, 384, 3], name='t_target_image')
 
-    net_g = SRGAN_g(t_image, is_train=True, reuse=False)
+    net_g = SRGAN_g(t_image, t_seg, is_train=True, reuse=False)
     net_d, logits_real = SRGAN_d(t_target_image, is_train=True, reuse=False)
     _,     logits_fake = SRGAN_d(net_g.outputs, is_train=True, reuse=True)
 
@@ -130,7 +111,7 @@ def train():
     _, vgg_predict_emb = Vgg19_simple_api((t_predict_image_224+1)/2, reuse=True)
 
     ## test inference
-    net_g_test = SRGAN_g(t_image, is_train=False, reuse=True)
+    net_g_test = SRGAN_g(t_image, t_seg, is_train=False, reuse=True)
 
     # ###========================== DEFINE TRAIN OPS ==========================###
     d_loss1 = tl.cost.sigmoid_cross_entropy(logits_real, tf.ones_like(logits_real), name='d1')
@@ -215,6 +196,10 @@ def train():
             b_imgs_384 = tl.prepro.threading_data(
                     train_hr_imgs[idx : idx + batch_size],
                     fn=crop_sub_imgs_fn, is_random=True)
+            b_segs = tl.prepro.threading_data(
+                    train_segs_list[idx : idx + batch_size],
+                    fn=segment_helper.load_one_hot,
+                    path=config.TRAIN.segment_preprocessed_path)
             b_imgs_96 = tl.prepro.threading_data(b_imgs_384, fn=downsample_fn)
             ## update G
             errM, _ = sess.run([mse_loss, g_optim_init], {t_image: b_imgs_96, t_target_image: b_imgs_384})
@@ -328,8 +313,9 @@ def evaluate():
     size = valid_lr_img.shape
     t_image = tf.placeholder('float32', [None, size[0], size[1], size[2]], name='input_image')
     # t_image = tf.placeholder('float32', [1, None, None, 3], name='input_image')
+    t_seg = tf.placeholder('int8', [batch_size, 96, 96, segment_helper.NUM_FEATURE_MAPS], name='t_seg_input_to_SRGAN_generator')
 
-    net_g = SRGAN_g(t_image, is_train=False, reuse=False)
+    net_g = SRGAN_g(t_image, t_seg, is_train=False, reuse=False)
 
     ###========================== RESTORE G =============================###
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))

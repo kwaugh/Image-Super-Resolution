@@ -14,7 +14,7 @@ from tensorlayer.layers import *
 
 # https://github.com/david-gpu/srez/blob/master/srez_model.py
 
-def SRGAN_g(t_image, is_train=False, reuse=False):
+def SRGAN_g(t_image, t_seg, is_train=False, reuse=False):
     """ Generator in Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network
     feature maps (n) and stride (s) feature maps (n) and stride (s)
     """

@@ -65,7 +65,7 @@ def get_frame_key(path):
     elems = filename.split('_')
     if len(elems) < 5:
         sys.stderr.write('Unknown image filename format: {}\n'.format(path))
-    return '_'.join(elems[:3])
+    return '_'.join(elems[:4])
 
 def load_seg_file_list(img_list, segment_suffix):
     files = []
