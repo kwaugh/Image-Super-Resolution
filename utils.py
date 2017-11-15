@@ -65,14 +65,12 @@ def get_frame_key(path):
     elems = filename.split('_')
     if len(elems) < 5:
         sys.stderr.write('Unknown image filename format: {}\n'.format(path))
-    return '_'.join(elems[:4])
+    return '_'.join(elems[:3])
 
 def load_seg_file_list(img_list, segment_suffix):
     files = []
     for img_path in img_list:
         prefix = get_frame_key(img_path)
-        # remove the _leftImg8bit.png suffix
-        prefix = prefix[0:-16]
         seg_filename = '{}_{}'.format(prefix, segment_suffix)
         files.append(seg_filename)
     return files

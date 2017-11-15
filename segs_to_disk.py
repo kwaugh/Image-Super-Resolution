@@ -34,17 +34,17 @@ def save_all_segs(img_list, path='', save_path='', segment_suffix='.png', n_thre
         print('saved %d from %s' % (n_threads + idx, path))
 
 if __name__ == '__main__':
-    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
-    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
-    # save_all_segs(
-    #         train_hr_img_list,
-    #         path=config.TRAIN.segment_path,
-    #         save_path=config.TRAIN.segment_preprocessed_path,
-    #         segment_suffix=config.TRAIN.segment_suffix,
-    #         n_threads=4)
+    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))[:10]
+    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))[:10]
     save_all_segs(
-            valid_hr_img_list,
-            path=config.VALID.segment_path,
-            save_path=config.VALID.segment_preprocessed_path,
-            segment_suffix=config.VALID.segment_suffix,
+            train_hr_img_list,
+            path=config.TRAIN.segment_path,
+            save_path=config.TRAIN.segment_preprocessed_path,
+            segment_suffix=config.TRAIN.segment_suffix,
             n_threads=4)
+    # save_all_segs(
+    #         valid_hr_img_list,
+    #         path=config.VALID.segment_path,
+    #         save_path=config.VALID.segment_preprocessed_path,
+    #         segment_suffix=config.VALID.segment_suffix,
+    #         n_threads=4)
