@@ -69,7 +69,7 @@ def read_all_segs(img_list, path='', segment_suffix='.png', n_threads=4):
     def load_seg_features(file_name, path):
         label_im = Image.open(os.path.join(path, file_name)).convert('RGB')
         w, h = label_im.size
-        label_im.resize((w // 2, h // 2), resample=Image.NEAREST)
+        label_im = label_im.resize((w // 4, h // 4), resample=Image.NEAREST)
         return segment_helper.label_to_one_hot(label_im)
 
     rem = len(segs_list) % config.TRAIN.batch_size
@@ -98,8 +98,8 @@ def train():
     valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
 
     ## If your machine have enough memory, please pre-load the whole train set.
-    train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
     train_segs = read_all_segs(train_hr_img_list, path=config.TRAIN.segment_path, segment_suffix=config.TRAIN.segment_suffix, n_threads=4)
+    train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
     # for im in train_hr_imgs:
     #     print(im.shape)
     valid_lr_imgs = read_all_imgs_bicubic(valid_lr_img_list, path=config.VALID.lr_img_path, n_threads=4)

@@ -70,6 +70,9 @@ def get_frame_key(path):
 def load_seg_file_list(img_list, segment_suffix):
     files = []
     for img_path in img_list:
-        seg_filename = '{}_{}'.format(get_frame_key(img_path), segment_suffix)
+        prefix = get_frame_key(img_path)
+        # remove the _leftImg8bit.png suffix
+        prefix = prefix[0:-16]
+        seg_filename = '{}_{}'.format(prefix, segment_suffix)
         files.append(seg_filename)
     return files

@@ -86,9 +86,12 @@ labels = [
 
 color2Id = {label.color: label.id for label in labels}
 
+# takes in a segmented image of dimension (w x h x 3)
+# produces a (w x h x 34) image of one-hot label feature maps
 def label_to_one_hot(im):
     w, h = im.size
     one_hot = np.zeros((w, h, len(labels)))
+    float_im = np.int32(im)
     for x in range(w):
         for y in range(h):
             color = im.getpixel((x, y))
