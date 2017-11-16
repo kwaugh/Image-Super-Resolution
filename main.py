@@ -79,25 +79,27 @@ def read_all_segs(seg_list, path='', n_threads=4):
 
 def train_srgan():
     ## create folders to save result images and trained model
-    save_dir_ginit = "samples/{}_ginit".format(tl.global_flag['mode'])
-    save_dir_gan = "samples/{}_gan".format(tl.global_flag['mode'])
+    save_dir_ginit = "samples/{}_{}_ginit".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
+    save_dir_gan = "samples/{}_{}_gan".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
     tl.files.exists_or_mkdir(save_dir_ginit)
     tl.files.exists_or_mkdir(save_dir_gan)
     checkpoint_dir = "checkpoint"  # checkpoint_resize_conv
     tl.files.exists_or_mkdir(checkpoint_dir)
 
     ###====================== PRE-LOAD DATA ===========================###
-    train_segs_list = sorted(tl.files.load_file_list(path=config.TRAIN.segment_preprocessed_path, regx='.*.npy', printable=False))
-    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
-    # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
-    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
-    valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
+    if (tl.global_flag['use_segs']):
+        train_segs_list = sorted(tl.files.load_file_list(path=config.TRAIN.segment_preprocessed_path, regx='.*.npy', printable=False))[:8]
+    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))[:8]
+    # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))[:8]
+    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))[:8]
+    valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))[:8]
 
     ## If your machine have enough memory, please pre-load the whole train set.
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
     # for im in train_hr_imgs:
     #     print(im.shape)
-    train_segs_imgs = read_all_segs(train_segs_list, path=config.TRAIN.segment_preprocessed_path, n_threads=4)
+    if (tl.global_flag['use_segs']):
+        train_segs_imgs = read_all_segs(train_segs_list, path=config.TRAIN.segment_preprocessed_path, n_threads=4)
     valid_lr_imgs = read_all_imgs_bicubic(valid_lr_img_list, path=config.VALID.lr_img_path, n_threads=4)
     # for im in valid_lr_imgs:
     #     print(im.shape)
@@ -109,10 +111,14 @@ def train_srgan():
     ###========================== DEFINE MODEL ============================###
     ## train inference
     t_image = tf.placeholder('float32', [batch_size, 96, 96, 3], name='t_image_input_to_SRGAN_generator')
-    t_seg = tf.placeholder('float32', [batch_size, 96, 96, segment_helper.NUM_FEATURE_MAPS], name='t_seg_input_to_SRGAN_generator')
+    if (tl.global_flag['use_segs']):
+        t_seg = tf.placeholder('float32', [batch_size, 96, 96, segment_helper.NUM_FEATURE_MAPS], name='t_seg_input_to_SRGAN_generator')
     t_target_image = tf.placeholder('float32', [batch_size, 384, 384, 3], name='t_target_image')
 
-    net_g = SRGAN_g(t_image, t_seg, is_train=True, reuse=False)
+    if (tl.global_flag['use_segs']):
+        net_g = SRGAN_g_seg(t_image, t_seg, is_train=True, reuse=False)
+    else:
+        net_g = SRGAN_g(t_image, is_train=True, reuse=False)
     net_d, logits_real = SRGAN_d(t_target_image, is_train=True, reuse=False)
     _,     logits_fake = SRGAN_d(net_g.outputs, is_train=True, reuse=True)
 
@@ -127,7 +133,10 @@ def train_srgan():
     _, vgg_predict_emb = Vgg19_simple_api((t_predict_image_224+1)/2, reuse=True)
 
     ## test inference
-    net_g_test = SRGAN_g(t_image, t_seg, is_train=False, reuse=True)
+    if (tl.global_flag['use_segs']):
+        net_g_test = SRGAN_g_seg(t_image, t_seg, is_train=False, reuse=True)
+    else:
+        net_g_test = SRGAN_g(t_image, is_train=False, reuse=True)
 
     # ###========================== DEFINE TRAIN OPS ==========================###
     d_loss1 = tl.cost.sigmoid_cross_entropy(logits_real, tf.ones_like(logits_real), name='d1')
@@ -154,9 +163,9 @@ def train_srgan():
     ###========================== RESTORE MODEL =============================###
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
     tl.layers.initialize_global_variables(sess)
-    if tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/g_{}.npz'.format(tl.global_flag['mode']), network=net_g) is False:
-        tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/g_{}_init.npz'.format(tl.global_flag['mode']), network=net_g)
-    tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/d_{}.npz'.format(tl.global_flag['mode']), network=net_d)
+    if tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/g_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs']), network=net_g) is False:
+        tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/g_{}_{}_init.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs']), network=net_g)
+    tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/d_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs']), network=net_d)
 
     ###============================= LOAD VGG ===============================###
     vgg19_npy_path = "vgg19.npy"
@@ -178,14 +187,16 @@ def train_srgan():
     ###============================= TRAINING ===============================###
     ## use first `batch_size` of train set to have a quick test during training
     sample_imgs = train_hr_imgs[0:batch_size]
-    sample_segs = train_segs_imgs[0:batch_size]
+    if (tl.global_flag['use_segs']):
+        sample_segs = train_segs_imgs[0:batch_size]
     # sample_imgs = read_all_imgs(train_hr_img_list[0:batch_size], path=config.TRAIN.hr_img_path, n_threads=4) # if no pre-load train set
     sample_imgs_384 = tl.prepro.threading_data(sample_imgs, fn=crop_sub_imgs_fn, is_random=False)
     print('sample HR sub-image:',sample_imgs_384.shape, sample_imgs_384.min(), sample_imgs_384.max())
     sample_imgs_96 = tl.prepro.threading_data(sample_imgs_384, fn=downsample_fn)
     print('sample LR sub-image:', sample_imgs_96.shape, sample_imgs_96.min(), sample_imgs_96.max())
-    sample_segs_96 = tl.prepro.threading_data(sample_segs, fn=lambda x: x)
-    print('sample segs sub-image:', sample_segs_96.shape, sample_segs_96.min(), sample_segs_96.max())
+    if (tl.global_flag['use_segs']):
+        sample_segs_96 = tl.prepro.threading_data(sample_segs, fn=lambda x: x)
+        print('sample segs sub-image:', sample_segs_96.shape, sample_segs_96.min(), sample_segs_96.max())
     # tl.vis.save_images(sample_imgs_96, [ni, ni], save_dir_ginit+'/_train_sample_96.png')
     # tl.vis.save_images(sample_imgs_384, [ni, ni], save_dir_ginit+'/_train_sample_384.png')
     # tl.vis.save_images(sample_imgs_96, [ni, ni], save_dir_gan+'/_train_sample_96.png')
@@ -215,12 +226,16 @@ def train_srgan():
             b_imgs_384 = tl.prepro.threading_data(
                     train_hr_imgs[idx : idx + batch_size],
                     fn=crop_sub_imgs_fn, is_random=True)
-            b_segs = tl.prepro.threading_data(
-                    train_segs_imgs[idx : idx + batch_size],
-                    fn=lambda x: x)
+            if (tl.global_flag['use_segs']):
+                b_segs = tl.prepro.threading_data(
+                        train_segs_imgs[idx : idx + batch_size],
+                        fn=lambda x: x)
             b_imgs_96 = tl.prepro.threading_data(b_imgs_384, fn=downsample_fn)
             ## update G
-            errM, _ = sess.run([mse_loss, g_optim_init], {t_image: b_imgs_96, t_target_image: b_imgs_384, t_seg: b_segs})
+            if (tl.global_flag['use_segs']):
+                errM, _ = sess.run([mse_loss, g_optim_init], {t_image: b_imgs_96, t_target_image: b_imgs_384, t_seg: b_segs})
+            else:
+                errM, _ = sess.run([mse_loss, g_optim_init], {t_image: b_imgs_96, t_target_image: b_imgs_384})
             print("Epoch [%2d/%2d] %4d time: %4.4fs, mse: %.8f " % (epoch, n_epoch_init, n_iter, time.time() - step_time, errM))
             total_mse_loss += errM
             n_iter += 1
@@ -229,13 +244,16 @@ def train_srgan():
 
         ## quick evaluation on train set
         if (epoch != 0) and (epoch % 10 == 0):
-            out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96, t_seg: sample_segs_96})#; print('gen sub-image:', out.shape, out.min(), out.max())
+            if (tl.global_flag['use_segs']):
+                out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96, t_seg: sample_segs_96})#; print('gen sub-image:', out.shape, out.min(), out.max())
+            else:
+                out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96})#; print('gen sub-image:', out.shape, out.min(), out.max())
             # print("[*] save images")
             # tl.vis.save_images(out, [ni, ni], save_dir_ginit+'/train_%d.png' % epoch)
 
         ## save model
         if (epoch != 0) and (epoch % 10 == 0):
-            tl.files.save_npz(net_g.all_params, name=checkpoint_dir+'/g_{}_init.npz'.format(tl.global_flag['mode']), sess=sess)
+            tl.files.save_npz(net_g.all_params, name=checkpoint_dir+'/g_{}_{}_init.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs']), sess=sess)
 
     ###========================= train GAN (SRGAN) =========================###
     for epoch in range(0, n_epoch+1):
@@ -269,14 +287,21 @@ def train_srgan():
             b_imgs_384 = tl.prepro.threading_data(
                     train_hr_imgs[idx : idx + batch_size],
                     fn=crop_sub_imgs_fn, is_random=True)
-            b_segs = tl.prepro.threading_data(
-                    train_segs_imgs[idx : idx + batch_size],
-                    fn=lambda x: x)
+            if (tl.global_flag['use_segs']):
+                b_segs = tl.prepro.threading_data(
+                        train_segs_imgs[idx : idx + batch_size],
+                        fn=lambda x: x)
             b_imgs_96 = tl.prepro.threading_data(b_imgs_384, fn=downsample_fn)
             ## update D
-            errD, _ = sess.run([d_loss, d_optim], {t_image: b_imgs_96, t_target_image: b_imgs_384, t_seg: b_segs})
+            if (tl.global_flag['use_segs']):
+                errD, _ = sess.run([d_loss, d_optim], {t_image: b_imgs_96, t_target_image: b_imgs_384, t_seg: b_segs})
+            else:
+                errD, _ = sess.run([d_loss, d_optim], {t_image: b_imgs_96, t_target_image: b_imgs_384})
             ## update G
-            errG, errM, errV, errA, _ = sess.run([g_loss, mse_loss, vgg_loss, g_gan_loss, g_optim], {t_image: b_imgs_96, t_target_image: b_imgs_384, t_seg: b_segs})
+            if (tl.global_flag['use_segs']):
+                errG, errM, errV, errA, _ = sess.run([g_loss, mse_loss, vgg_loss, g_gan_loss, g_optim], {t_image: b_imgs_96, t_target_image: b_imgs_384, t_seg: b_segs})
+            else:
+                errG, errM, errV, errA, _ = sess.run([g_loss, mse_loss, vgg_loss, g_gan_loss, g_optim], {t_image: b_imgs_96, t_target_image: b_imgs_384})
             print("Epoch [%2d/%2d] %4d time: %4.4fs, d_loss: %.8f g_loss: %.8f (mse: %.6f vgg: %.6f adv: %.6f)" % (epoch, n_epoch, n_iter, time.time() - step_time, errD, errG, errM, errV, errA))
             total_d_loss += errD
             total_g_loss += errG
@@ -287,18 +312,21 @@ def train_srgan():
 
         ## quick evaluation on train set
         if (epoch != 0) and (epoch % 10 == 0):
-            out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96, t_seg: sample_segs_96})#; print('gen sub-image:', out.shape, out.min(), out.max())
+            if (tl.global_flag['use_segs']):
+                out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96, t_seg: sample_segs_96})#; print('gen sub-image:', out.shape, out.min(), out.max())
+            else:
+                out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96})#; print('gen sub-image:', out.shape, out.min(), out.max())
             # print("[*] save images")
             # tl.vis.save_images(out, [ni, ni], save_dir_gan+'/train_%d.png' % epoch)
 
         ## save model
         if (epoch != 0) and (epoch % 10 == 0):
-            tl.files.save_npz(net_g.all_params, name=checkpoint_dir+'/g_{}.npz'.format(tl.global_flag['mode']), sess=sess)
-            tl.files.save_npz(net_d.all_params, name=checkpoint_dir+'/d_{}.npz'.format(tl.global_flag['mode']), sess=sess)
+            tl.files.save_npz(net_g.all_params, name=checkpoint_dir+'/g_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs']), sess=sess)
+            tl.files.save_npz(net_d.all_params, name=checkpoint_dir+'/d_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs']), sess=sess)
 
 def train_srresnet():
     ## create folders to save result images and trained model
-    save_dir = "samples/{}".format(tl.global_flag['mode'])
+    save_dir = "samples/{}_{}".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
     tl.files.exists_or_mkdir(save_dir)
     checkpoint_dir = "checkpoint"  # checkpoint_resize_conv
     tl.files.exists_or_mkdir(checkpoint_dir)
@@ -346,7 +374,7 @@ def train_srresnet():
     ###========================== RESTORE MODEL =============================###
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
     tl.layers.initialize_global_variables(sess)
-    tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/g_{}.npz'.format(tl.global_flag['mode']), network=net_g)
+    tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/g_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs']), network=net_g)
 
     ###============================= LOAD VGG ===============================###
     vgg19_npy_path = "vgg19.npy"
@@ -430,7 +458,7 @@ def train_srresnet():
 
         ## save model
         if (epoch != 0) and (epoch % 10 == 0):
-            tl.files.save_npz(net_g.all_params, name=checkpoint_dir+'/g_{}.npz'.format(tl.global_flag['mode']), sess=sess)
+            tl.files.save_npz(net_g.all_params, name=checkpoint_dir+'/g_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs']), sess=sess)
 
     ###========================= train GAN (SRGAN) =========================###
     # for epoch in range(0, n_epoch+1):
@@ -577,9 +605,13 @@ if __name__ == '__main__':
     parser.add_argument('--mode', type=str, default='srgan',
             help='srgan, srresnet, evaluate-srgan, evaluate_srresnet')
 
+    parser.add_argument('--use-segs', type=str, default='True',
+            help='Use segmentations or not')
+
     args = parser.parse_args()
 
     tl.global_flag['mode'] = args.mode
+    tl.global_flag['use_segs'] = args.use_segs == 'True'
 
     if tl.global_flag['mode'] == 'srgan':
         train_srgan()
