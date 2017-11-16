@@ -473,7 +473,7 @@ def train_srresnet():
     ###========================= train G ====================###
     ## fixed learning rate
     sess.run(tf.assign(lr_v, lr_init))
-    for epoch in range(0, n_epoch // 4 + 1):
+    for epoch in range(0, n_epoch + 1):
         ## update learning rate
         if epoch !=0 and (epoch % decay_every == 0):
             new_lr_decay = lr_decay ** (epoch // decay_every)
