@@ -1,10 +1,11 @@
 # Label definitions taken from:
 # https://github.com/mcordts/cityscapesScripts
 
-import argparse
 import numpy as np
+import os
 import sys
 
+from config import *
 from collections import namedtuple
 from PIL import Image
 
@@ -86,23 +87,22 @@ labels = [
 
 color2Id = {label.color: label.id for label in labels}
 
+NUM_FEATURE_MAPS = len(labels)
+
+# takes in a segmented image of dimension (w x h x 3)
+# produces a (w x h x 34) image of one-hot label feature maps
 def label_to_one_hot(im):
     w, h = im.size
-    one_hot = np.zeros((w, h, len(labels)))
+    one_hot = np.zeros((w, h, NUM_FEATURE_MAPS), dtype=np.int8)
+    float_im = np.int32(im)
     for x in range(w):
         for y in range(h):
             color = im.getpixel((x, y))
             one_hot[x][y][color2Id[color]] = 1
     return one_hot
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('image_path', type=str)
-    args = parser.parse_args()
+def save_one_hot(data, path, name):
+    np.save(os.path.join(path, name), data)
 
-    im = Image.open(args.image_path).convert('RGB')
-    one_hot = label_to_one_hot(im)
-    import pdb; pdb.set_trace()
-
-if __name__ == '__main__':
-    main()
+def load_one_hot(name, path=''):
+    return np.load(os.path.join(path, name))

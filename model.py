@@ -14,7 +14,7 @@ from tensorlayer.layers import *
 
 # https://github.com/david-gpu/srez/blob/master/srez_model.py
 
-def SRGAN_g(t_image, is_train=False, reuse=False):
+def SRGAN_g(t_image, t_seg, is_train=False, reuse=False):
     """ Generator in Photo-Realistic Single Image Super-Resolution Using a Generative Adversarial Network
     feature maps (n) and stride (s) feature maps (n) and stride (s)
     """
@@ -23,7 +23,8 @@ def SRGAN_g(t_image, is_train=False, reuse=False):
     g_init = tf.random_normal_initializer(1., 0.02)
     with tf.variable_scope("SRGAN_g", reuse=reuse) as vs:
         tl.layers.set_name_reuse(reuse)
-        n = InputLayer(t_image, name='in')
+        n = InputLayer(tf.concat((t_image, t_seg), axis=-1), name='in')
+        # n is now of size (batch_size, 96, 96, 37)
         n = Conv2d(n, 64, (3, 3), (1, 1), act=tf.nn.relu, padding='SAME', W_init=w_init, name='n64s1/c')
         temp = n
 
