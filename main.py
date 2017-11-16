@@ -308,7 +308,8 @@ def train_srgan():
         #     b_imgs_96 = tl.prepro.threading_data(b_imgs_384, fn=downsample_fn)
 
         ## If your machine have enough memory, please pre-load the whole train set.
-        for idx in range(0, len(train_hr_imgs), batch_size):
+        rem = len(train_hr_imgs) % config.TRAIN.batch_size
+        for idx in range(0, len(train_hr_imgs) - rem, batch_size):
             step_time = time.time()
             b_imgs_384 = tl.prepro.threading_data(
                     train_hr_imgs[idx : idx + batch_size],
