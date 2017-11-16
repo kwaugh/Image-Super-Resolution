@@ -5,3 +5,8 @@ data2017
 *.bbl
 *.blg
 *.log
+checkpoint*
+gtFine
+leftImg8bit
+samples
+vgg19.npy
