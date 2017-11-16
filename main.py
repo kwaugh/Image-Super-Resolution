@@ -108,17 +108,10 @@ def train_srgan():
 
     ## If your machine have enough memory, please pre-load the whole train set.
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
-    # for im in train_hr_imgs:
-    #     print(im.shape)
     if (tl.global_flag['use_segs']):
         train_segs_imgs = read_all_segs(train_segs_list, path=config.TRAIN.segment_preprocessed_path, n_threads=4)
     valid_lr_imgs = read_all_imgs_bicubic(valid_lr_img_list, path=config.VALID.lr_img_path, n_threads=4)
-    # for im in valid_lr_imgs:
-    #     print(im.shape)
     valid_hr_imgs = read_all_imgs(valid_hr_img_list, path=config.VALID.hr_img_path, n_threads=4)
-    # for im in valid_hr_imgs:
-    #     print(im.shape)
-    # exit()
 
     ###========================== DEFINE MODEL ============================###
     ## train inference
@@ -370,7 +363,7 @@ def train_srgan():
 
 def train_srresnet():
     ## create folders to save result images and trained model
-    save_dir = "samples/{}_{}".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
+    save_dir = "samples/{}_{}_resnet".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
     tl.files.exists_or_mkdir(save_dir)
     checkpoint_dir = "checkpoint"  # checkpoint_resize_conv
     tl.files.exists_or_mkdir(checkpoint_dir)
@@ -400,7 +393,7 @@ def train_srresnet():
         t_seg = tf.placeholder(
                 'float32',
                 [batch_size, 96, 96, segment_helper.NUM_FEATURE_MAPS],
-                name='t_seg_input_to_SRGAN_generator')
+                name='t_seg_input_to_SRRESNET_generator')
     t_target_image = tf.placeholder('float32', [batch_size, 384, 384, 3], name='t_target_image')
 
     if (tl.global_flag['use_segs']):
@@ -480,7 +473,7 @@ def train_srresnet():
     ###========================= train G ====================###
     ## fixed learning rate
     sess.run(tf.assign(lr_v, lr_init))
-    for epoch in range(0, n_epoch/4 + 1):
+    for epoch in range(0, n_epoch // 4 + 1):
         ## update learning rate
         if epoch !=0 and (epoch % decay_every == 0):
             new_lr_decay = lr_decay ** (epoch // decay_every)
@@ -519,11 +512,11 @@ def train_srresnet():
             ## update G
             if (tl.global_flag['use_segs']):
                 errG, errM, errV, _ = sess.run(
-                        [g_loss, mse_loss, vgg_loss, g_optim_init],
+                        [g_loss, mse_loss, vgg_loss, g_optim],
                         {t_image: b_imgs_96, t_target_image: b_imgs_384, t_seg: b_segs})
             else:
                 errG, errM, errV, _ = sess.run(
-                        [g_loss, mse_loss, vgg_loss, g_optim_init],
+                        [g_loss, mse_loss, vgg_loss, g_optim],
                         {t_image: b_imgs_96, t_target_image: b_imgs_384})
             print("Epoch [%2d/%2d] %4d time: %4.4fs, g_loss: %.8f (mse: %.6f vgg: %.6f)"
                     % (epoch, n_epoch, n_iter, time.time() - step_time, errG, errM, errV))
