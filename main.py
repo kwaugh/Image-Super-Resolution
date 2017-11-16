@@ -352,7 +352,7 @@ def train_srgan():
             # tl.vis.save_images(out, [ni, ni], save_dir_gan+'/train_%d.png' % epoch)
 
         ## save model
-        if (epoch != 0) and (epoch % 10 == 0):
+        if (epoch != 0) and (epoch % 5 == 0):
             tl.files.save_npz(
                     net_g.all_params,
                     name=checkpoint_dir+'/g_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs']),
