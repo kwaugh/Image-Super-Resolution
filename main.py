@@ -303,18 +303,21 @@ def evaluate():
     checkpoint_dir = "checkpoint"
 
     ###====================== PRE-LOAD DATA ===========================###
-    # train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
-    # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
-    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
-    valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
+    # train_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
+    # train_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
+    valid_segs_list = sorted(tl.files.load_file_list(path=config.VALID.segment_preprocessed_path, regx='.*.npy', printable=False))[:12]
+    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))[:12]
+    valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))[:12]
 
     print('valid_hr_img_list:', len(valid_hr_img_list))
     print('valid_lr_img_list:', len(valid_lr_img_list))
+    print('valid_segs_list:', len(valid_segs_list))
 
     ## If your machine have enough memory, please pre-load the whole train set.
-    # train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
+    # train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.VALID.hr_img_path, n_threads=4)
     # for im in train_hr_imgs:
     #     print(im.shape)
+    valid_segs_imgs = read_all_segs(valid_segs_list, path=config.VALID.segment_preprocessed_path, n_threads=4)
     valid_lr_imgs = read_all_imgs_bicubic(valid_lr_img_list, path=config.VALID.lr_img_path, n_threads=4)
     # for im in valid_lr_imgs:
     #     print(im.shape)
@@ -324,7 +327,7 @@ def evaluate():
     # exit()
 
     ###========================== DEFINE MODEL ============================###
-    imid = 64 # 0: 企鹅  81: 蝴蝶 53: 鸟  64: 古堡
+    imid = len(valid_lr_imgs) // 2 # 0: 企鹅  81: 蝴蝶 53: 鸟  64: 古堡
     valid_lr_img = valid_lr_imgs[imid]
     valid_hr_img = valid_hr_imgs[imid]
         # valid_lr_img = get_imgs_fn('test.png', 'data2017/')  # if you want to test your own image
@@ -334,7 +337,7 @@ def evaluate():
     size = valid_lr_img.shape
     t_image = tf.placeholder('float32', [None, size[0], size[1], size[2]], name='input_image')
     # t_image = tf.placeholder('float32', [1, None, None, 3], name='input_image')
-    t_seg = tf.placeholder('float32', [batch_size, 96, 96, segment_helper.NUM_FEATURE_MAPS], name='t_seg_input_to_SRGAN_generator')
+    t_seg = tf.placeholder('float32', [None, 96, 96, segment_helper.NUM_FEATURE_MAPS], name='t_seg_input_to_SRGAN_generator')
 
     net_g = SRGAN_g(t_image, t_seg, is_train=False, reuse=False)
 
@@ -352,7 +355,8 @@ def evaluate():
     for i in range(len(valid_lr_imgs)):
         valid_lr_img = valid_lr_imgs[i]
         valid_hr_img = crop_square(valid_hr_imgs[i])
-        out = sess.run(net_g.outputs, {t_image: [valid_lr_img]})
+        valid_seg_img = valid_segs_imgs[i]
+        out = sess.run(net_g.outputs, {t_image: [valid_lr_img], t_seg: [valid_seg_img]})
         print("took: %4.4fs" % (time.time() - start_time))
 
         print("LR size: %s /  generated HR size: %s" % (size, out.shape)) # LR size: (339, 510, 3) /  gen HR size: (1, 1356, 2040, 3)
