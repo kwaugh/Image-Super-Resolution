@@ -104,11 +104,11 @@ def train_srgan():
             printable=False))
         valid_hr_img_list = sorted(tl.files.load_file_list(
             path=os.path.join(config.VALID.hr_img_path, 'preprocessed'),
-            regx='.*.npy',
+            regx='.*hr.npy',
             printable=False))
         valid_lr_img_list = sorted(tl.files.load_file_list(
             path=os.path.join(config.VALID.lr_img_path, 'preprocessed'),
-            regx='.*.npy',
+            regx='.*lr.npy',
             printable=False))
     else:
         train_hr_img_list = sorted(tl.files.load_file_list(
@@ -117,11 +117,11 @@ def train_srgan():
             printable=False))
         valid_hr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.hr_img_path,
-            regx='.*.png',
+            regx='.*hr.png',
             printable=False))
         valid_lr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.lr_img_path,
-            regx='.*.png',
+            regx='.*lr.png',
             printable=False))
     # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))[:8]
 
@@ -402,11 +402,11 @@ def train_srresnet():
             printable=False))
         valid_hr_img_list = sorted(tl.files.load_file_list(
             path=os.path.join(config.VALID.hr_img_path, 'preprocessed'),
-            regx='.*.npy',
+            regx='.*hr.npy',
             printable=False))
         valid_lr_img_list = sorted(tl.files.load_file_list(
             path=os.path.join(config.VALID.lr_img_path, 'preprocessed'),
-            regx='.*.npy',
+            regx='.*lr.npy',
             printable=False))
     else:
         train_hr_img_list = sorted(tl.files.load_file_list(
@@ -415,11 +415,11 @@ def train_srresnet():
             printable=False))
         valid_hr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.hr_img_path,
-            regx='.*.png',
+            regx='.*hr.png',
             printable=False))
         valid_lr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.lr_img_path,
-            regx='.*.png',
+            regx='.*lr.png',
             printable=False))
     # train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
     # # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
@@ -604,14 +604,24 @@ def evaluate():
                     path=config.VALID.segment_preprocessed_path,
                     regx='.*.npy',
                     printable=False))
-    valid_hr_img_list = sorted(tl.files.load_file_list(
-        path=config.VALID.hr_img_path,
-        regx='.*.png',
-        printable=False))
-    valid_lr_img_list = sorted(tl.files.load_file_list(
-        path=config.VALID.lr_img_path,
-        regx='.*.png',
-        printable=False))
+    if os.path.exists(os.path.join(config.TRAIN.hr_img_path, 'preprocessed')):
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.hr_img_path, 'preprocessed'),
+            regx='.*hr.npy',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.lr_img_path, 'preprocessed'),
+            regx='.*lr.npy',
+            printable=False))
+    else:
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.hr_img_path,
+            regx='.*hr.png',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.lr_img_path,
+            regx='.*lr.png',
+            printable=False))
 
     print('valid_hr_img_list:', len(valid_hr_img_list))
     print('valid_lr_img_list:', len(valid_lr_img_list))
