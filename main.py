@@ -619,12 +619,14 @@ def evaluate():
 
     ###======================= EVALUATION =============================###
     start_time = time.time()
+    # quantitative metrics
     mse_gen = 0 # mean squared error
-    mse_bicubic = 0 # mean squared error
-    psnr_gen = 0
+    mse_bicubic = 0
+    psnr_gen = 0 # peak signal to noise ratio
     psnr_bicubic = 0
-    ssim_gen = 0
+    ssim_gen = 0 # structural similarity
     ssim_bicubic = 0
+
     h = valid_lr_img.shape[0]
     w = valid_lr_img.shape[1]
     c = valid_lr_img.shape[2]
@@ -642,14 +644,14 @@ def evaluate():
         # LR size: (339, 510, 3) /  gen HR size: (1, 1356, 2040, 3)
         print("LR size: %s /  generated HR size: %s" % (size, out.shape))
         print("[*] save images")
-        tl.vis.save_image(out[0], save_dir+'/valid_'+str(i)+'gen.png')
-        tl.vis.save_image(valid_lr_img, save_dir+'/valid_'+str(i)+'lr.png')
-        tl.vis.save_image(valid_hr_img, save_dir+'/valid_'+str(i)+'hr.png')
 
         out_bicubic = scipy.misc.imresize(valid_lr_img, [size[0]*4, size[1]*4], interp='bicubic', mode=None).astype('int')
-        tl.vis.save_image(out_bicubic, save_dir+'/valid_'+str(i)+'bicubic.png')
-
         resized_hr_img = scipy.misc.imresize(valid_hr_img, [384, 384], interp='bicubic', mode=None).astype('int')
+
+        tl.vis.save_image(valid_lr_img, save_dir+'/valid_'+str(i)+'lr.png')
+        tl.vis.save_image(resized_hr_img, save_dir+'/valid_'+str(i)+'hr.png')
+        tl.vis.save_image(out_bicubic, save_dir+'/valid_'+str(i)+'bicubic.png')
+        tl.vis.save_image(out[0], save_dir+'/valid_'+str(i)+'gen.png')
 
         # normalize generated image to be int in range [0, 255]
         out_gen = out[0].astype('float')
@@ -662,26 +664,25 @@ def evaluate():
         # quantitative metrics
         mse_gen         += skimage.measure.compare_mse( resized_hr_img, out_gen)
         mse_bicubic     += skimage.measure.compare_mse( resized_hr_img, out_bicubic)
-        psnr_gen        += skimage.measure.compare_psnr(resized_hr_img, out_gen)
-        psnr_bicubic    += skimage.measure.compare_psnr(resized_hr_img, out_bicubic)
-        ssim_gen        += skimage.measure.compare_ssim(resized_hr_img, out_gen, multichannel=True)
-        ssim_bicubic    += skimage.measure.compare_ssim(resized_hr_img, out_bicubic, multichannel=True)
+        psnr_gen        += skimage.measure.compare_psnr(resized_hr_img, out_gen, data_range=255)
+        psnr_bicubic    += skimage.measure.compare_psnr(resized_hr_img, out_bicubic, data_range=255)
+        ssim_gen        += skimage.measure.compare_ssim(resized_hr_img, out_gen, data_range=255, multichannel=True)
+        ssim_bicubic    += skimage.measure.compare_ssim(resized_hr_img, out_bicubic, data_range=255, multichannel=True)
 
-    mse_gen         /= len(valid_lr_img)
-    mse_bicubic     /= len(valid_lr_img)
-    psnr_gen        /= len(valid_lr_img)
-    psnr_bicubic    /= len(valid_lr_img)
-    ssim_gen        /= len(valid_lr_img)
-    ssim_bicubic    /= len(valid_lr_img)
-    print('Mean_squared_error_gen: {}'.format(mse_gen))
-    print('Mean_squared_error_bicubic: {}'.format(mse_bicubic))
-    print('psnr_gen: {}'.format(psnr_gen))
-    print('psnr_bicubic: {}'.format(psnr_bicubic))
-    print('ssim_gen: {}'.format(ssim_gen))
-    print('ssim_bicubic: {}'.format(ssim_bicubic))
+    mse_gen         /= len(valid_lr_imgs)
+    mse_bicubic     /= len(valid_lr_imgs)
+    psnr_gen        /= len(valid_lr_imgs)
+    psnr_bicubic    /= len(valid_lr_imgs)
+    ssim_gen        /= len(valid_lr_imgs)
+    ssim_bicubic    /= len(valid_lr_imgs)
+    print('Mean_squared_error_gen: {}'      .format(mse_gen))
+    print('Mean_squared_error_bicubic: {}'  .format(mse_bicubic))
+    print('psnr_gen: {}'                    .format(psnr_gen))
+    print('psnr_bicubic: {}'                .format(psnr_bicubic))
+    print('ssim_gen: {}'                    .format(ssim_gen))
+    print('ssim_bicubic: {}'                .format(ssim_bicubic))
 
 if __name__ == '__main__':
-    global n_epoch
     import argparse
     parser = argparse.ArgumentParser()
 
