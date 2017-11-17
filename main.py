@@ -84,10 +84,10 @@ def read_all_segs(seg_list, path='', n_threads=4):
 
 def train_srgan():
     ## create folders to save result images and trained model
-    save_dir_ginit = "samples/{}_{}_ginit".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
-    save_dir_gan = "samples/{}_{}_gan".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
-    tl.files.exists_or_mkdir(save_dir_ginit)
-    tl.files.exists_or_mkdir(save_dir_gan)
+    # save_dir_ginit = "samples/{}_{}_ginit".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
+    # save_dir_gan = "samples/{}_{}_gan".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
+    # tl.files.exists_or_mkdir(save_dir_ginit)
+    # tl.files.exists_or_mkdir(save_dir_gan)
     checkpoint_dir = "checkpoint"  # checkpoint_resize_conv
     tl.files.exists_or_mkdir(checkpoint_dir)
 
@@ -384,8 +384,8 @@ def train_srgan():
 
 def train_srresnet():
     ## create folders to save result images and trained model
-    save_dir = "samples/{}_{}_resnet".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
-    tl.files.exists_or_mkdir(save_dir)
+    # save_dir = "samples/{}_{}_resnet".format(tl.global_flag['mode'], tl.global_flag['use_segs'])
+    # tl.files.exists_or_mkdir(save_dir)
     checkpoint_dir = "checkpoint"  # checkpoint_resize_conv
     tl.files.exists_or_mkdir(checkpoint_dir)
 
