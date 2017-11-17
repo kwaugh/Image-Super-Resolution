@@ -626,6 +626,7 @@ def evaluate():
     mse_bicubic = 0 # mean squared error
     h = valid_lr_img.shape[0]
     w = valid_lr_img.shape[1]
+    c = valid_lr_img.shape[2]
     for i in range(len(valid_lr_imgs)):
         valid_lr_img = valid_lr_imgs[i]
         valid_hr_img = crop_square(valid_hr_imgs[i])
@@ -648,12 +649,11 @@ def evaluate():
         tl.vis.save_image(out_bicu, save_dir+'/valid_'+str(i)+'bicubic.png')
 
         resized_hr_img = scipy.misc.imresize(valid_hr_img, [384, 384], interp='bicubic', mode=None)
-        # print((out[0] * 255).astype("int"))
-        mse_gen += np.sum((resized_hr_img.astype("float") - out[0].astype("float")) ** 2)
-        mse_bicubic += np.sum((resized_hr_img.astype("float") - out_bicu.astype("float")) ** 2)
+        mse_gen += np.mean((resized_hr_img.astype("float") - out[0].astype("float")) ** 2, (0, 1, 2))
+        mse_bicubic += np.mean((resized_hr_img.astype("float") - out_bicu.astype("float")) ** 2, (0, 1, 2))
 
-    mse_gen /= w * h * len(valid_lr_img) * 3 # 3 because or rgb channels
-    mse_bicubic /= w * h * len(valid_lr_img) * 3 # 3 because or rgb channels
+    mse_gen /= w * h * c * len(valid_lr_img)
+    mse_bicubic /= w * h * c * len(valid_lr_img)
     print("Mean_squared_error_gen: " + str(mse_gen))
     print("Mean_squared_error_bicubic: " + str(mse_bicubic))
 
