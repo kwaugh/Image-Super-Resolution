@@ -263,6 +263,7 @@ def Vgg19_simple_api(rgb, reuse):
     """
     VGG_MEAN = [103.939, 116.779, 123.68]
     with tf.variable_scope("VGG19", reuse=reuse) as vs:
+        tl.layers.set_name_reuse(reuse)
         start_time = time.time()
         print("build model started")
         rgb_scaled = rgb * 255.0
