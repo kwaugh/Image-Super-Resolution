@@ -681,19 +681,23 @@ def evaluate():
     print('ssim_bicubic: {}'.format(ssim_bicubic))
 
 if __name__ == '__main__':
+    global n_epoch
     import argparse
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--mode', type=str, default='srgan',
             help='srgan, srresnet, evaluate-srgan, evaluate-srresnet')
-
     parser.add_argument('--use-segs', type=str, default='True',
             help='Use segmentations or not')
+    parser.add_argument('--epochs', type=str, default=str(config.TRAIN.n_epoch),
+            help='Number of epochs to train')
 
     args = parser.parse_args()
 
     tl.global_flag['mode'] = args.mode
     tl.global_flag['use_segs'] = args.use_segs == 'True'
+    n_epoch = int(args.epochs)
+    print('Training for {} epochs'.format(n_epoch))
 
     if tl.global_flag['mode'] == 'srgan':
         train_srgan()
