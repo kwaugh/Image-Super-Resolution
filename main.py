@@ -17,6 +17,7 @@ from model import *
 from utils import *
 from config import config, log_config
 from PIL import Image
+import skimage
 
 ###====================== HYPER-PARAMETERS ===========================###
 ## Adam
@@ -618,6 +619,10 @@ def evaluate():
     start_time = time.time()
     mse_gen = 0 # mean squared error
     mse_bicubic = 0 # mean squared error
+    psnr_gen = 0
+    psnr_bicubic = 0
+    ssim_gen = 0
+    ssim_bicubic = 0
     h = valid_lr_img.shape[0]
     w = valid_lr_img.shape[1]
     c = valid_lr_img.shape[2]
@@ -639,17 +644,34 @@ def evaluate():
         tl.vis.save_image(valid_lr_img, save_dir+'/valid_'+str(i)+'lr.png')
         tl.vis.save_image(valid_hr_img, save_dir+'/valid_'+str(i)+'hr.png')
 
-        out_bicu = scipy.misc.imresize(valid_lr_img, [size[0]*4, size[1]*4], interp='bicubic', mode=None)
-        tl.vis.save_image(out_bicu, save_dir+'/valid_'+str(i)+'bicubic.png')
+        out_bicubic = scipy.misc.imresize(valid_lr_img, [size[0]*4, size[1]*4], interp='bicubic', mode=None).astype('float')
+        tl.vis.save_image(out_bicubic, save_dir+'/valid_'+str(i)+'bicubic.png')
 
-        resized_hr_img = scipy.misc.imresize(valid_hr_img, [384, 384], interp='bicubic', mode=None)
-        mse_gen += np.mean((resized_hr_img.astype("float") - out[0].astype("float")) ** 2, (0, 1, 2))
-        mse_bicubic += np.mean((resized_hr_img.astype("float") - out_bicu.astype("float")) ** 2, (0, 1, 2))
+        # quantitative metrics
+        out_gen = out[0].astype('float')
+        resized_hr_img = scipy.misc.imresize(valid_hr_img, [384, 384], interp='bicubic', mode=None).astype('float')
+        mse_gen += skimage.measure.compare_mse(resized_hr_img, out_gen)
+        mse_bicubic += skimage.measure.compare_mse(resized_hr_img, out_bicubic)
+        # psnr_gen += skimage.measure.compare_psnr(resized_hr_img, out_gen)
+        # psnr_bicubic += skimage.measure.compare_psnr(resized_hr_img, out_bicubic)
+        ssim_gen += skimage.measure.compare_ssim(resized_hr_img, out_gen, multichannel=True)
+        ssim_bicubic += skimage.measure.compare_ssim(resized_hr_img, out_bicubic, multichannel=True)
 
-    mse_gen /= w * h * c * len(valid_lr_img)
-    mse_bicubic /= w * h * c * len(valid_lr_img)
-    print("Mean_squared_error_gen: " + str(mse_gen))
-    print("Mean_squared_error_bicubic: " + str(mse_bicubic))
+    mse_gen /= len(valid_lr_img)
+    mse_bicubic /= len(valid_lr_img)
+    # TODO: not sure if 255 is the upper bound on the pixel values
+    psnr_gen = 20*np.log10(255) - 10*np.log10(mse_gen)
+    psnr_bicubic = 20*np.log10(255) - 10*np.log10(mse_bicubic)
+    # psnr_gen /= len(valid_lr_img)
+    # psnr_bicubic /= len(valid_lr_img)
+    ssim_gen /= len(valid_lr_img)
+    ssim_bicubic /= len(valid_lr_img)
+    print('Mean_squared_error_gen: {}'.format(mse_gen))
+    print('Mean_squared_error_bicubic: {}'.format(mse_bicubic))
+    print('psnr_gen: {}'.format(psnr_gen))
+    print('psnr_bicubic: {}'.format(psnr_bicubic))
+    print('ssim_gen: {}'.format(ssim_gen))
+    print('ssim_bicubic: {}'.format(ssim_bicubic))
 
 if __name__ == '__main__':
     import argparse
