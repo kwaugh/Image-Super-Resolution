@@ -38,9 +38,13 @@ def read_all_imgs(img_list, path='', n_threads=4):
     imgs = []
     # remove extra so that we have full batches
     rem = len(img_list) % config.TRAIN.batch_size
+    func = get_imgs_fn
+    if os.path.exists(os.path.join(path, 'preprocessed')):
+        func = lambda file_name, path: np.load(os.path.join(os.path.join(path, 'preprocessed'), file_name))
+
     for idx in range(0, len(img_list) - rem, n_threads):
         b_imgs_list = img_list[idx : idx + n_threads]
-        b_imgs = tl.prepro.threading_data(b_imgs_list, fn=get_imgs_fn, path=path)
+        b_imgs = tl.prepro.threading_data(b_imgs_list, fn=func, path=path)
         # print(b_imgs.shape)
         imgs.extend(b_imgs)
         print('read %d from %s' % (len(imgs), path))
@@ -50,14 +54,14 @@ def read_all_imgs_bicubic(img_list, path='', n_threads=4):
     """ Returns all images in array by given path and name of each image file. """
     """ Downscales the image by 4x using bicubic interpolation"""
     imgs = []
+    func = lambda file_name, path: downsample_preserve_aspect_ratio_fn(get_imgs_fn(file_name, path))
+    if os.path.exists(os.path.join(path, 'preprocessed')):
+        func = lambda file_name, path: np.load(os.path.join(os.path.join(path, 'preprocessed'), file_name))
     # remove extra so that we have full batches
     rem = len(img_list) % config.TRAIN.batch_size
     for idx in range(0, len(img_list) - rem, n_threads):
         b_imgs_list = img_list[idx : idx + n_threads]
-        b_imgs = tl.prepro.threading_data(
-            b_imgs_list,
-            fn=lambda file_name, path: downsample_preserve_aspect_ratio_fn(get_imgs_fn(file_name, path)),
-            path=path)
+        b_imgs = tl.prepro.threading_data(b_imgs_list, fn=func, path=path)
         # print(b_imgs.shape)
         imgs.extend(b_imgs)
         print('read %d from %s' % (len(imgs), path))
@@ -93,19 +97,33 @@ def train_srgan():
             path=config.TRAIN.segment_preprocessed_path,
             regx='.*.npy',
             printable=False))
-    train_hr_img_list = sorted(tl.files.load_file_list(
-        path=config.TRAIN.hr_img_path,
-        regx='.*.png',
-        printable=False))
+    if os.path.exists(os.path.join(config.TRAIN.hr_img_path, 'preprocessed')):
+        train_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.TRAIN.hr_img_path, 'preprocessed'),
+            regx='.*.npy',
+            printable=False))
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.hr_img_path, 'preprocessed'),
+            regx='.*.npy',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.lr_img_path, 'preprocessed'),
+            regx='.*.npy',
+            printable=False))
+    else:
+        train_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.TRAIN.hr_img_path,
+            regx='.*.png',
+            printable=False))
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.hr_img_path,
+            regx='.*.png',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.lr_img_path,
+            regx='.*.png',
+            printable=False))
     # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))[:8]
-    valid_hr_img_list = sorted(tl.files.load_file_list(
-        path=config.VALID.hr_img_path,
-        regx='.*.png',
-        printable=False))
-    valid_lr_img_list = sorted(tl.files.load_file_list(
-        path=config.VALID.lr_img_path,
-        regx='.*.png',
-        printable=False))
 
     ## If your machine have enough memory, please pre-load the whole train set.
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
@@ -288,12 +306,11 @@ def train_srgan():
         if epoch !=0 and (epoch % decay_every == 0):
             new_lr_decay = lr_decay ** (epoch // decay_every)
             sess.run(tf.assign(lr_v, lr_init * new_lr_decay))
-            log = " ** new learning rate: %f (for GAN)" % (lr_init * new_lr_decay)
-            print(log)
+            print*(" ** new learning rate: %f (for GAN)" % (lr_init * new_lr_decay))
         elif epoch == 0:
             sess.run(tf.assign(lr_v, lr_init))
-            log = " ** init lr: %f  decay_every_init: %d, lr_decay: %f (for GAN)" % (lr_init, decay_every, lr_decay)
-            print(log)
+            print(" ** init lr: %f  decay_every_init: %d, lr_decay: %f (for GAN)"
+                    % (lr_init, decay_every, lr_decay))
 
         epoch_time = time.time()
         total_d_loss, total_g_loss, n_iter = 0, 0, 0
@@ -378,10 +395,36 @@ def train_srresnet():
             path=config.TRAIN.segment_preprocessed_path,
             regx='.*.npy',
             printable=False))
-    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
-    # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
-    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
-    valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
+    if os.path.exists(os.path.join(config.TRAIN.hr_img_path, 'preprocessed')):
+        train_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.TRAIN.hr_img_path, 'preprocessed'),
+            regx='.*.npy',
+            printable=False))
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.hr_img_path, 'preprocessed'),
+            regx='.*.npy',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.lr_img_path, 'preprocessed'),
+            regx='.*.npy',
+            printable=False))
+    else:
+        train_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.TRAIN.hr_img_path,
+            regx='.*.png',
+            printable=False))
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.hr_img_path,
+            regx='.*.png',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.lr_img_path,
+            regx='.*.png',
+            printable=False))
+    # train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
+    # # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
+    # valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
+    # valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
 
     ## If your machine have enough memory, please pre-load the whole train set.
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
