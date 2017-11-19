@@ -701,10 +701,11 @@ def evaluate():
         out_bicubic = scipy.misc.imresize(valid_lr_img, [size[0]*4, size[1]*4], interp='bicubic', mode=None).astype('int')
         resized_hr_img = scipy.misc.imresize(valid_hr_img, [384, 384], interp='bicubic', mode=None).astype('int')
 
-        tl.vis.save_image(valid_lr_img, save_dir+'/valid_'+str(i)+'lr.png')
-        tl.vis.save_image(resized_hr_img, save_dir+'/valid_'+str(i)+'hr.png')
-        tl.vis.save_image(out_bicubic, save_dir+'/valid_'+str(i)+'bicubic.png')
-        tl.vis.save_image(out[0], save_dir+'/valid_'+str(i)+'gen.png')
+        if tl.global_flag['save_pics']:
+            tl.vis.save_image(valid_lr_img, save_dir+'/valid_'+str(i)+'lr.png')
+            tl.vis.save_image(resized_hr_img, save_dir+'/valid_'+str(i)+'hr.png')
+            tl.vis.save_image(out_bicubic, save_dir+'/valid_'+str(i)+'bicubic.png')
+            tl.vis.save_image(out[0], save_dir+'/valid_'+str(i)+'gen.png')
 
         # normalize generated image to be int in range [0, 255]
         out_gen = out[0].astype('float')
@@ -745,12 +746,15 @@ if __name__ == '__main__':
             help='Use segmentations or not')
     parser.add_argument('--epochs', type=str, default=str(config.TRAIN.n_epoch),
             help='Number of epochs to train')
+    parser.add_argument('--save-pics', type=str, default='True',
+            help='Save pictures in samples directory when doing evaluate')
 
     args = parser.parse_args()
 
     tl.global_flag['mode'] = args.mode
     tl.global_flag['use_segs'] = args.use_segs == 'True'
     n_epoch = int(args.epochs)
+    tl.global_flag['save_pics'] = args.save_pics == 'True'
     print('Training for {} epochs'.format(n_epoch))
 
     if tl.global_flag['mode'] == 'srgan':
