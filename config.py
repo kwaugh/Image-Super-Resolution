@@ -5,6 +5,7 @@ from easydict import EasyDict as edict
 import json
 
 config = edict()
+config.AUTO_SEGMENTATIONS = True
 config.TRAIN = edict()
 
 ## Adam
@@ -29,17 +30,23 @@ config.TRAIN.decay_every = int(config.TRAIN.n_epoch / 2)
 
 # Streetview dataset
 config.TRAIN.hr_img_path = 'leftImg8bit/train/'
-config.TRAIN.segment_path = 'gtFine/train'
-config.TRAIN.segment_suffix = 'gtFine_color.png'
-config.TRAIN.segment_preprocessed_path = 'gtFine/train/preprocessed'
+if config.AUTO_SEGMENTATIONS:
+    config.TRAIN.segment_preprocessed_path = 'auto_segmentations/train/preprocessed'
+else:
+    config.TRAIN.segment_preprocessed_path = 'gtFine/train/preprocessed'
+config.TRAIN.cityscapes_segment_path = 'gtFine/train'
+config.TRAIN.cityscapes_segment_suffix = 'gtFine_color.png'
 
 config.VALID = edict()
 ## test set location
 config.VALID.hr_img_path = 'leftImg8bit/val/'
 config.VALID.lr_img_path = 'leftImg8bit/val/'
-config.VALID.segment_path = 'gtFine/val/'
-config.VALID.segment_suffix = 'gtFine_color.png'
-config.VALID.segment_preprocessed_path = 'gtFine/val/preprocessed/'
+if config.AUTO_SEGMENTATIONS:
+    config.VALID.segment_preprocessed_path = 'auto_segmentations/val/preprocessed/'
+else:
+    config.VALID.segment_preprocessed_path = 'gtFine/val/preprocessed/'
+config.VALID.cityscapes_segment_path = 'gtFine/val/'
+config.VALID.cityscapes_segment_suffix = 'gtFine_color.png'
 
 def log_config(filename, cfg):
     with open(filename, 'w') as f:

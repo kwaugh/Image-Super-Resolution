@@ -1,7 +1,7 @@
 import tensorlayer as tl
 import numpy as np
 import pickle
-import segment_helper
+import cityscapes_segment_helper as segment_helper
 from config import *
 from utils import *
 from PIL import Image
@@ -24,8 +24,7 @@ def downsample_and_crop(im, final_shape):
 def save_all_segs(img_list, path='', save_path='', segment_suffix='.png', n_threads=4):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    segs = []
-    segs_list = load_seg_file_list(img_list, config.TRAIN.segment_suffix)
+    segs_list = load_seg_file_list(img_list, segment_suffix)
 
     def save_seg_features(file_name, path, save_path):
         label_im = Image.open(os.path.join(path, file_name)).convert('RGB')
@@ -42,6 +41,7 @@ def save_all_segs(img_list, path='', save_path='', segment_suffix='.png', n_thre
         print('saved %d from %s' % (n_threads + idx, path))
 
 if __name__ == '__main__':
+    assert(not config.AUTO_SEGMENTATIONS)
     # train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
     valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
     # save_all_segs(
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     #         n_threads=4)
     save_all_segs(
             valid_hr_img_list,
-            path=config.VALID.segment_path,
+            path=config.VALID.cityscapes_segment_path,
             save_path=config.VALID.segment_preprocessed_path,
-            segment_suffix=config.VALID.segment_suffix,
+            segment_suffix=config.VALID.cityscapes_segment_suffix,
             n_threads=4)
