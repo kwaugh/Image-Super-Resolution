@@ -17,6 +17,7 @@ from utils import *
 from config import config, log_config
 from PIL import Image
 import skimage
+import skimage.io
 
 if config.AUTO_SEGMENTATIONS:
     import auto_segment_helper as segment_helper
@@ -671,7 +672,7 @@ def evaluate():
     ###========================== RESTORE G =============================###
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
     tl.layers.initialize_global_variables(sess)
-    checkpoint_file = '/g_{}_{}.npz'.format(tl.global_flag['mode'].split('-')[1], tl.global_flag['use_segs'])
+    checkpoint_file = '/g_{}_{}_{}.npz'.format(tl.global_flag['mode'].split('-')[1], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
     tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+checkpoint_file, network=net_g)
 
     ###======================= EVALUATION =============================###
@@ -710,14 +711,15 @@ def evaluate():
             tl.vis.save_image(resized_hr_img, save_dir+'/valid_'+str(i)+'hr.png')
             tl.vis.save_image(out_bicubic, save_dir+'/valid_'+str(i)+'bicubic.png')
             tl.vis.save_image(out[0], save_dir+'/valid_'+str(i)+'gen.png')
-
-        # normalize generated image to be int in range [0, 255]
-        out_gen = out[0].astype('float')
-        out_min = np.amin(out_gen)
-        out_max = np.amax(out_gen)
-        out_gen -= out_min # set min to 0
-        out_gen *= 255.0/out_max # scale so max is 255
-        out_gen = out_gen.astype('int')
+            out_gen = skimage.io.imread(save_dir+'/valid_'+str(i)+'gen.png').astype('int')
+        else:
+            # normalize generated image to be int in range [0, 255]
+            out_gen = out[0].astype('float')
+            out_min = np.amin(out_gen)
+            out_max = np.amax(out_gen)
+            out_gen -= out_min # set min to 0
+            out_gen *= 255.0/out_max # scale so max is 255
+            out_gen = out_gen.astype('int')
 
         # quantitative metrics
         mse_gen         += skimage.measure.compare_mse( resized_hr_img, out_gen)
