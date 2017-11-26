@@ -8,7 +8,7 @@ import scipy.misc as misc
 import datetime
 import auto_segment_helper as segment_helper
 import TensorflowUtils as tf_utils
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from six.moves import xrange
 from utils import downsample_preserve_aspect_ratio_fn, get_imgs_fn, get_frame_key
@@ -17,7 +17,7 @@ from tensorlayer.prepro import imresize
 
 FLAGS = tf.flags.FLAGS
 tf.flags.DEFINE_integer("batch_size", "4", "batch size")
-tf.flags.DEFINE_string("logs_dir", "checkpoint/", "path to checkpoint directory")
+tf.flags.DEFINE_string("logs_dir", "segmentation_checkpoint/", "path to checkpoint directory")
 tf.flags.DEFINE_string("model_dir", "Model_zoo/", "Path to vgg model mat")
 tf.flags.DEFINE_string("mode", "train", "Mode train/ valid")
 
@@ -140,16 +140,20 @@ def main(argv=None):
     if ckpt and ckpt.model_checkpoint_path:
         saver.restore(sess, ckpt.model_checkpoint_path)
         print("Model restored...")
+    else:
+        print("Couldn't restore model.")
 
     if FLAGS.mode == "train":
+        print("train")
         cfg = config.TRAIN
     elif FLAGS.mode == "valid":
+        print("valid")
         cfg = config.VALID
 
     if not os.path.exists(cfg.segment_preprocessed_path):
         os.makedirs(cfg.segment_preprocessed_path)
 
-    img_list = sorted(tl.files.load_file_list(path=cfg.hr_img_path, regx='.*.png', printable=False))[:10]
+    img_list = sorted(tl.files.load_file_list(path=cfg.hr_img_path, regx='.*.png', printable=False))
     rem = len(img_list) % FLAGS.batch_size
     for idx in range(0, len(img_list) - rem, FLAGS.batch_size):
         b_imgs_list = img_list[idx : idx + FLAGS.batch_size]
@@ -159,14 +163,14 @@ def main(argv=None):
         pred = sess.run(pred_annotation,
                 feed_dict = {image: b_imgs, keep_probability: 1.0})
 
-        for i in range(FLAGS.batch_size):
-            plt.subplot(1, 2, 1)
-            plt.imshow(b_imgs[0])
-            plt.subplot(1, 2, 2)
-            plt.imshow(np.squeeze(pred[0].astype(np.uint8), axis=2))
-            plt.savefig('compare_{}.png'.format(i))
-            plt.show()
-        return
+        # for i in range(FLAGS.batch_size):
+        #     plt.subplot(1, 2, 1)
+        #     plt.imshow(b_imgs[0])
+        #     plt.subplot(1, 2, 2)
+        #     plt.imshow(np.squeeze(pred[0].astype(np.uint8), axis=2))
+        #     plt.savefig('compare_{}.png'.format(i))
+        #     plt.show()
+        # return
 
         for i in range(FLAGS.batch_size):
             img = pred[i].astype(np.uint8)
