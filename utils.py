@@ -44,16 +44,17 @@ def crop_square(x):
     min_dim = min(h, w)
     return crop(x, wrg=min_dim, hrg=min_dim, is_random=False)
 
-def downsample_fn(x, size=[96, 96]):
+def downsample_fn(x, size=[96, 96], mean_center=True):
     # We obtained the LR images by downsampling the HR images using bicubic kernel with downsampling factor r = 4.
     x = imresize(x, size=size, interp='bicubic', mode=None)
-    x = x / (255. / 2.)
-    x = x - 1.
+    if mean_center:
+        x = x / (255. / 2.)
+        x = x - 1.
     return x
 
-def downsample_preserve_aspect_ratio_fn(x, size=[96, 96]):
+def downsample_preserve_aspect_ratio_fn(x, size=[96, 96], mean_center=True):
     # Downsample to the right resolution, but also preserve the aspect ratio
-    return downsample_fn(crop_square(x), size)
+    return downsample_fn(crop_square(x), size, mean_center)
 
 def upsample_fn(x):
     return imresize(x, size=[384, 384], interp='bicubic', mode=None)

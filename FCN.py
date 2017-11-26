@@ -8,6 +8,7 @@ import scipy.misc as misc
 import datetime
 import auto_segment_helper as segment_helper
 import TensorflowUtils as tf_utils
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 
 from six.moves import xrange
@@ -154,22 +155,22 @@ def main(argv=None):
     for idx in range(0, len(img_list) - rem, FLAGS.batch_size):
         b_imgs_list = img_list[idx : idx + FLAGS.batch_size]
         load_image = lambda fn, path: downsample_preserve_aspect_ratio_fn(
-                get_imgs_fn(fn, path), size=[256, 256])
+                get_imgs_fn(fn, path), size=[256, 256], mean_center=False)
         b_imgs = tl.prepro.threading_data(b_imgs_list, fn=load_image, path=cfg.hr_img_path)
         pred = sess.run(pred_annotation,
                 feed_dict = {image: b_imgs, keep_probability: 1.0})
+        pred = np.squeeze(pred, axis=3)
+
+#         for i in range(FLAGS.batch_size):
+#             plt.subplot(1, 2, 1)
+#             plt.imshow(b_imgs[0])
+#             plt.subplot(1, 2, 2)
+#             plt.imshow(pred[0].astype(np.uint8), cmap=cm.Paired, vmin=0, vmax=151)
+#             plt.savefig('compare_{}.png'.format(i))
+#             plt.show()
 
         for i in range(FLAGS.batch_size):
-            plt.subplot(1, 2, 1)
-            plt.imshow(b_imgs[0])
-            plt.subplot(1, 2, 2)
-            plt.imshow(np.squeeze(pred[0].astype(np.uint8), axis=2))
-            plt.savefig('compare_{}.png'.format(i))
-            plt.show()
-        return
-
-        for i in range(FLAGS.batch_size):
-            img = pred[i].astype(np.uint8)
+            img = np.expand_dims(pred[i].astype(np.uint8), axis=2)
             img = imresize(img, size=[96, 96], interp='nearest', mode=None)
             img = np.squeeze(img, axis=2)
             one_hot = segment_helper.label_to_one_hot(img)
