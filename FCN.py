@@ -18,7 +18,7 @@ from tensorlayer.prepro import imresize
 
 FLAGS = tf.flags.FLAGS
 tf.flags.DEFINE_integer("batch_size", "4", "batch size")
-tf.flags.DEFINE_string("logs_dir", "checkpoint/", "path to checkpoint directory")
+tf.flags.DEFINE_string("logs_dir", "segmentation_checkpoint/", "path to checkpoint directory")
 tf.flags.DEFINE_string("model_dir", "Model_zoo/", "Path to vgg model mat")
 tf.flags.DEFINE_string("mode", "train", "Mode train/ valid")
 
@@ -141,16 +141,20 @@ def main(argv=None):
     if ckpt and ckpt.model_checkpoint_path:
         saver.restore(sess, ckpt.model_checkpoint_path)
         print("Model restored...")
+    else:
+        print("Couldn't restore model.")
 
     if FLAGS.mode == "train":
+        print("train")
         cfg = config.TRAIN
     elif FLAGS.mode == "valid":
+        print("valid")
         cfg = config.VALID
 
     if not os.path.exists(cfg.segment_preprocessed_path):
         os.makedirs(cfg.segment_preprocessed_path)
 
-    img_list = sorted(tl.files.load_file_list(path=cfg.hr_img_path, regx='.*.png', printable=False))[:10]
+    img_list = sorted(tl.files.load_file_list(path=cfg.hr_img_path, regx='.*.png', printable=False))
     rem = len(img_list) % FLAGS.batch_size
     for idx in range(0, len(img_list) - rem, FLAGS.batch_size):
         b_imgs_list = img_list[idx : idx + FLAGS.batch_size]

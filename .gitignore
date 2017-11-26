@@ -11,3 +11,6 @@ leftImg8bit
 samples
 vgg19.npy
 output*.txt
+Model_zoo/
+auto_segmentations
+segmentation_checkpoint/
