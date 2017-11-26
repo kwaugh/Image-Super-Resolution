@@ -12,6 +12,7 @@ from tensorlayer.prepro import *
 
 import scipy
 import numpy as np
+from config import *
 
 def get_imgs_fn(file_name, path, interp='bicubic'):
     """ Input an image path and name, return an image array """
@@ -75,3 +76,45 @@ def load_seg_file_list(img_list, segment_suffix):
         seg_filename = '{}_{}'.format(prefix, segment_suffix)
         files.append(seg_filename)
     return files
+
+# save all hr imgs to disk downsampled a bit
+# save train and validation images
+def save_hr_imgs():
+    train_hr_img_list = sorted(tl.files.load_file_list(
+        path=config.TRAIN.hr_img_path,
+        regx='.*.png',
+        printable=False))
+    valid_hr_img_list = sorted(tl.files.load_file_list(
+        path=config.VALID.hr_img_path,
+        regx='.*.png',
+        printable=False))
+
+    if not os.path.exists(os.path.join(config.TRAIN.hr_img_path, 'preprocessed')):
+        os.makedirs(os.path.join(config.TRAIN.hr_img_path, 'preprocessed'))
+    if not os.path.exists(os.path.join(config.VALID.hr_img_path, 'preprocessed')):
+        os.makedirs(os.path.join(config.VALID.hr_img_path, 'preprocessed'))
+
+    for i in range(len(train_hr_img_list)):
+        img = get_imgs_fn(train_hr_img_list[i], config.TRAIN.hr_img_path)
+        prepro_path = os.path.join(config.TRAIN.hr_img_path, 'preprocessed')
+        np.save(os.path.join(prepro_path, train_hr_img_list[i]) + '_hr', img)
+    for i in range(len(valid_hr_img_list)):
+        img = get_imgs_fn(valid_hr_img_list[i], config.VALID.hr_img_path)
+        prepro_path = os.path.join(config.VALID.hr_img_path, 'preprocessed')
+        np.save(os.path.join(prepro_path, valid_hr_img_list[i]) + '_hr', img)
+
+# save all lr imgs to disk
+# only need to save validation images
+def save_lr_imgs():
+    valid_lr_img_list = sorted(tl.files.load_file_list(
+        path=config.VALID.lr_img_path,
+        regx='.*.png',
+        printable=False))
+
+    if not os.path.exists(os.path.join(config.VALID.lr_img_path, 'preprocessed')):
+        os.makedirs(os.path.join(config.VALID.lr_img_path, 'preprocessed'))
+
+    for i in range(len(valid_lr_img_list)):
+        img = downsample_preserve_aspect_ratio_fn(get_imgs_fn(valid_lr_img_list[i], config.VALID.lr_img_path))
+        prepro_path = os.path.join(config.VALID.lr_img_path, 'preprocessed')
+        np.save(os.path.join(prepro_path, valid_lr_img_list[i]) + '_lr', img)

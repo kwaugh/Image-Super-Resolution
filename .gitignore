@@ -10,3 +10,4 @@ gtFine
 leftImg8bit
 samples
 vgg19.npy
+output*.txt

@@ -16,6 +16,7 @@ from model import *
 from utils import *
 from config import config, log_config
 from PIL import Image
+import skimage
 
 if config.AUTO_SEGMENTATIONS:
     import auto_segment_helper as segment_helper
@@ -41,9 +42,13 @@ def read_all_imgs(img_list, path='', n_threads=4):
     imgs = []
     # remove extra so that we have full batches
     rem = len(img_list) % config.TRAIN.batch_size
+    func = get_imgs_fn
+    if os.path.exists(os.path.join(path, 'preprocessed')):
+        func = lambda file_name, path: np.load(os.path.join(os.path.join(path, 'preprocessed'), file_name))
+
     for idx in range(0, len(img_list) - rem, n_threads):
         b_imgs_list = img_list[idx : idx + n_threads]
-        b_imgs = tl.prepro.threading_data(b_imgs_list, fn=get_imgs_fn, path=path)
+        b_imgs = tl.prepro.threading_data(b_imgs_list, fn=func, path=path)
         # print(b_imgs.shape)
         imgs.extend(b_imgs)
         print('read %d from %s' % (len(imgs), path))
@@ -53,14 +58,14 @@ def read_all_imgs_bicubic(img_list, path='', n_threads=4):
     """ Returns all images in array by given path and name of each image file. """
     """ Downscales the image by 4x using bicubic interpolation"""
     imgs = []
+    func = lambda file_name, path: downsample_preserve_aspect_ratio_fn(get_imgs_fn(file_name, path))
+    if os.path.exists(os.path.join(path, 'preprocessed')):
+        func = lambda file_name, path: np.load(os.path.join(os.path.join(path, 'preprocessed'), file_name))
     # remove extra so that we have full batches
     rem = len(img_list) % config.TRAIN.batch_size
     for idx in range(0, len(img_list) - rem, n_threads):
         b_imgs_list = img_list[idx : idx + n_threads]
-        b_imgs = tl.prepro.threading_data(
-            b_imgs_list,
-            fn=lambda file_name, path: downsample_preserve_aspect_ratio_fn(get_imgs_fn(file_name, path)),
-            path=path)
+        b_imgs = tl.prepro.threading_data(b_imgs_list, fn=func, path=path)
         # print(b_imgs.shape)
         imgs.extend(b_imgs)
         print('read %d from %s' % (len(imgs), path))
@@ -96,19 +101,33 @@ def train_srgan():
             path=config.TRAIN.segment_preprocessed_path,
             regx='.*.npy',
             printable=False))
-    train_hr_img_list = sorted(tl.files.load_file_list(
-        path=config.TRAIN.hr_img_path,
-        regx='.*.png',
-        printable=False))
+    if os.path.exists(os.path.join(config.TRAIN.hr_img_path, 'preprocessed')):
+        train_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.TRAIN.hr_img_path, 'preprocessed'),
+            regx='.*.npy',
+            printable=False))
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.hr_img_path, 'preprocessed'),
+            regx='.*hr.npy',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.lr_img_path, 'preprocessed'),
+            regx='.*lr.npy',
+            printable=False))
+    else:
+        train_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.TRAIN.hr_img_path,
+            regx='.*.png',
+            printable=False))
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.hr_img_path,
+            regx='.*hr.png',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.lr_img_path,
+            regx='.*lr.png',
+            printable=False))
     # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))[:8]
-    valid_hr_img_list = sorted(tl.files.load_file_list(
-        path=config.VALID.hr_img_path,
-        regx='.*.png',
-        printable=False))
-    valid_lr_img_list = sorted(tl.files.load_file_list(
-        path=config.VALID.lr_img_path,
-        regx='.*.png',
-        printable=False))
 
     ## If your machine have enough memory, please pre-load the whole train set.
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
@@ -291,12 +310,11 @@ def train_srgan():
         if epoch !=0 and (epoch % decay_every == 0):
             new_lr_decay = lr_decay ** (epoch // decay_every)
             sess.run(tf.assign(lr_v, lr_init * new_lr_decay))
-            log = " ** new learning rate: %f (for GAN)" % (lr_init * new_lr_decay)
-            print(log)
+            print*(" ** new learning rate: %f (for GAN)" % (lr_init * new_lr_decay))
         elif epoch == 0:
             sess.run(tf.assign(lr_v, lr_init))
-            log = " ** init lr: %f  decay_every_init: %d, lr_decay: %f (for GAN)" % (lr_init, decay_every, lr_decay)
-            print(log)
+            print(" ** init lr: %f  decay_every_init: %d, lr_decay: %f (for GAN)"
+                    % (lr_init, decay_every, lr_decay))
 
         epoch_time = time.time()
         total_d_loss, total_g_loss, n_iter = 0, 0, 0
@@ -312,6 +330,9 @@ def train_srgan():
         #     b_imgs_96 = tl.prepro.threading_data(b_imgs_384, fn=downsample_fn)
 
         ## If your machine have enough memory, please pre-load the whole train set.
+        # rem = len(train_hr_imgs) % config.TRAIN.batch_size
+        # print('rem:')
+        # for idx in range(0, len(train_hr_imgs) - rem, batch_size):
         for idx in range(0, len(train_hr_imgs), batch_size):
             step_time = time.time()
             b_imgs_384 = tl.prepro.threading_data(
@@ -355,7 +376,7 @@ def train_srgan():
             # tl.vis.save_images(out, [ni, ni], save_dir_gan+'/train_%d.png' % epoch)
 
         ## save model
-        if (epoch != 0) and (epoch % 10 == 0):
+        if (epoch != 0) and (epoch % 5 == 0):
             tl.files.save_npz(
                     net_g.all_params,
                     name=checkpoint_dir+'/g_{}_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
@@ -378,10 +399,36 @@ def train_srresnet():
             path=config.TRAIN.segment_preprocessed_path,
             regx='.*.npy',
             printable=False))
-    train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
-    # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
-    valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
-    valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
+    if os.path.exists(os.path.join(config.TRAIN.hr_img_path, 'preprocessed')):
+        train_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.TRAIN.hr_img_path, 'preprocessed'),
+            regx='.*.npy',
+            printable=False))
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.hr_img_path, 'preprocessed'),
+            regx='.*hr.npy',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.lr_img_path, 'preprocessed'),
+            regx='.*lr.npy',
+            printable=False))
+    else:
+        train_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.TRAIN.hr_img_path,
+            regx='.*.png',
+            printable=False))
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.hr_img_path,
+            regx='.*hr.png',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.lr_img_path,
+            regx='.*lr.png',
+            printable=False))
+    # train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
+    # # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
+    # valid_hr_img_list = sorted(tl.files.load_file_list(path=config.VALID.hr_img_path, regx='.*.png', printable=False))
+    # valid_lr_img_list = sorted(tl.files.load_file_list(path=config.VALID.lr_img_path, regx='.*.png', printable=False))
 
     ## If your machine have enough memory, please pre-load the whole train set.
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
@@ -561,14 +608,24 @@ def evaluate():
                     path=config.VALID.segment_preprocessed_path,
                     regx='.*.npy',
                     printable=False))
-    valid_hr_img_list = sorted(tl.files.load_file_list(
-        path=config.VALID.hr_img_path,
-        regx='.*.png',
-        printable=False))
-    valid_lr_img_list = sorted(tl.files.load_file_list(
-        path=config.VALID.lr_img_path,
-        regx='.*.png',
-        printable=False))
+    if os.path.exists(os.path.join(config.TRAIN.hr_img_path, 'preprocessed')):
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.hr_img_path, 'preprocessed'),
+            regx='.*hr.npy',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=os.path.join(config.VALID.lr_img_path, 'preprocessed'),
+            regx='.*lr.npy',
+            printable=False))
+    else:
+        valid_hr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.hr_img_path,
+            regx='.*hr.png',
+            printable=False))
+        valid_lr_img_list = sorted(tl.files.load_file_list(
+            path=config.VALID.lr_img_path,
+            regx='.*lr.png',
+            printable=False))
 
     print('valid_hr_img_list:', len(valid_hr_img_list))
     print('valid_lr_img_list:', len(valid_lr_img_list))
@@ -619,10 +676,17 @@ def evaluate():
 
     ###======================= EVALUATION =============================###
     start_time = time.time()
+    # quantitative metrics
     mse_gen = 0 # mean squared error
-    mse_bicubic = 0 # mean squared error
+    mse_bicubic = 0
+    psnr_gen = 0 # peak signal to noise ratio
+    psnr_bicubic = 0
+    ssim_gen = 0 # structural similarity
+    ssim_bicubic = 0
+
     h = valid_lr_img.shape[0]
     w = valid_lr_img.shape[1]
+    c = valid_lr_img.shape[2]
     for i in range(len(valid_lr_imgs)):
         valid_lr_img = valid_lr_imgs[i]
         valid_hr_img = crop_square(valid_hr_imgs[i])
@@ -637,22 +701,44 @@ def evaluate():
         # LR size: (339, 510, 3) /  gen HR size: (1, 1356, 2040, 3)
         print("LR size: %s /  generated HR size: %s" % (size, out.shape))
         print("[*] save images")
-        tl.vis.save_image(out[0], save_dir+'/valid_'+str(i)+'gen.png')
-        tl.vis.save_image(valid_lr_img, save_dir+'/valid_'+str(i)+'lr.png')
-        tl.vis.save_image(valid_hr_img, save_dir+'/valid_'+str(i)+'hr.png')
 
-        out_bicu = scipy.misc.imresize(valid_lr_img, [size[0]*4, size[1]*4], interp='bicubic', mode=None)
-        tl.vis.save_image(out_bicu, save_dir+'/valid_'+str(i)+'bicubic.png')
+        out_bicubic = scipy.misc.imresize(valid_lr_img, [size[0]*4, size[1]*4], interp='bicubic', mode=None).astype('int')
+        resized_hr_img = scipy.misc.imresize(valid_hr_img, [384, 384], interp='bicubic', mode=None).astype('int')
 
-        resized_hr_img = scipy.misc.imresize(valid_hr_img, [384, 384], interp='bicubic', mode=None)
-        # print((out[0] * 255).astype("int"))
-        mse_gen += np.sum((resized_hr_img.astype("float") - out[0].astype("float")) ** 2)
-        mse_bicubic += np.sum((resized_hr_img.astype("float") - out_bicu.astype("float")) ** 2)
+        if tl.global_flag['save_pics']:
+            tl.vis.save_image(valid_lr_img, save_dir+'/valid_'+str(i)+'lr.png')
+            tl.vis.save_image(resized_hr_img, save_dir+'/valid_'+str(i)+'hr.png')
+            tl.vis.save_image(out_bicubic, save_dir+'/valid_'+str(i)+'bicubic.png')
+            tl.vis.save_image(out[0], save_dir+'/valid_'+str(i)+'gen.png')
 
-    mse_gen /= w * h * len(valid_lr_img) * 3 # 3 because or rgb channels
-    mse_bicubic /= w * h * len(valid_lr_img) * 3 # 3 because or rgb channels
-    print("Mean_squared_error_gen: " + str(mse_gen))
-    print("Mean_squared_error_bicubic: " + str(mse_bicubic))
+        # normalize generated image to be int in range [0, 255]
+        out_gen = out[0].astype('float')
+        out_min = np.amin(out_gen)
+        out_max = np.amax(out_gen)
+        out_gen -= out_min # set min to 0
+        out_gen *= 255.0/out_max # scale so max is 255
+        out_gen = out_gen.astype('int')
+
+        # quantitative metrics
+        mse_gen         += skimage.measure.compare_mse( resized_hr_img, out_gen)
+        mse_bicubic     += skimage.measure.compare_mse( resized_hr_img, out_bicubic)
+        psnr_gen        += skimage.measure.compare_psnr(resized_hr_img, out_gen, data_range=255)
+        psnr_bicubic    += skimage.measure.compare_psnr(resized_hr_img, out_bicubic, data_range=255)
+        ssim_gen        += skimage.measure.compare_ssim(resized_hr_img, out_gen, data_range=255, multichannel=True)
+        ssim_bicubic    += skimage.measure.compare_ssim(resized_hr_img, out_bicubic, data_range=255, multichannel=True)
+
+    mse_gen         /= len(valid_lr_imgs)
+    mse_bicubic     /= len(valid_lr_imgs)
+    psnr_gen        /= len(valid_lr_imgs)
+    psnr_bicubic    /= len(valid_lr_imgs)
+    ssim_gen        /= len(valid_lr_imgs)
+    ssim_bicubic    /= len(valid_lr_imgs)
+    print('Mean_squared_error_gen: {}'      .format(mse_gen))
+    print('Mean_squared_error_bicubic: {}'  .format(mse_bicubic))
+    print('psnr_gen: {}'                    .format(psnr_gen))
+    print('psnr_bicubic: {}'                .format(psnr_bicubic))
+    print('ssim_gen: {}'                    .format(ssim_gen))
+    print('ssim_bicubic: {}'                .format(ssim_bicubic))
 
 if __name__ == '__main__':
     import argparse
@@ -660,14 +746,20 @@ if __name__ == '__main__':
 
     parser.add_argument('--mode', type=str, default='srgan',
             help='srgan, srresnet, evaluate-srgan, evaluate-srresnet')
-
     parser.add_argument('--use-segs', type=str, default='True',
             help='Use segmentations or not')
+    parser.add_argument('--epochs', type=str, default=str(config.TRAIN.n_epoch),
+            help='Number of epochs to train')
+    parser.add_argument('--save-pics', type=str, default='True',
+            help='Save pictures in samples directory when doing evaluate')
 
     args = parser.parse_args()
 
     tl.global_flag['mode'] = args.mode
     tl.global_flag['use_segs'] = args.use_segs == 'True'
+    n_epoch = int(args.epochs)
+    tl.global_flag['save_pics'] = args.save_pics == 'True'
+    print('Training for {} epochs'.format(n_epoch))
 
     if tl.global_flag['mode'] == 'srgan':
         train_srgan()
