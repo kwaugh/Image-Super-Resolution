@@ -311,7 +311,7 @@ def train_srgan():
         if epoch !=0 and (epoch % decay_every == 0):
             new_lr_decay = lr_decay ** (epoch // decay_every)
             sess.run(tf.assign(lr_v, lr_init * new_lr_decay))
-            print*(" ** new learning rate: %f (for GAN)" % (lr_init * new_lr_decay))
+            print(" ** new learning rate: %f (for GAN)" % (lr_init * new_lr_decay))
         elif epoch == 0:
             sess.run(tf.assign(lr_v, lr_init))
             print(" ** init lr: %f  decay_every_init: %d, lr_decay: %f (for GAN)"
