@@ -42,8 +42,9 @@ def collect_scores(path, viewer_app='eog'):
 
         img_type_re = re.compile('({})\.png'.format('|'.join(image_types)))
         img_type = img_type_re.search(img_fn).group(1)
-        counts[img_type] += 1
-        averages[img_type] += (score - averages[img_type]) / counts[img_type]
+        if img_type:
+            counts[img_type] += 1
+            averages[img_type] += (score - averages[img_type]) / counts[img_type]
 
     score_file = open(score_filename, 'w')
     for t in image_types:
