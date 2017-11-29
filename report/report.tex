@@ -6,6 +6,7 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{subcaption}
 
 % Include other packages here, before hyperref.
 
@@ -50,7 +51,7 @@ University of Texas at Austin\\
 \begin{abstract}
 In this paper, we address the problem of image super-resolution (SR) using
 a ResNet based convolutional neural network (CNN) as well as a generative
-adversarial network (GAN). Our approach differs from prior with the
+adversarial network (GAN). Our approach differs from prior work with the
 addition of explicit semantic segmentation data. We experiment with both
 human annotated pixel-wise segmentations as well as machine generated
 pixel-wise segmentations. Our results show that adding the segmentation
@@ -71,6 +72,22 @@ is to create an inverse transformation that ``hallucinates'' information from
 the low resolution (LR) image to fill in the gaps for the high resolution (HR)
 image. Naive methods of upsampling using nearest neighbor and bicubic
 interpolation introduce many artifacts and produce visually displeasing images.
+Figure 1 displays an example of results obtained with a naive method as well as
+perfect results to which we aim to come closer.
+
+\begin{figure}[ht] 
+    \begin{tabular}{cc}
+            NN & Original \\
+    \includegraphics[trim=0 0 0 0, clip,
+        width=1.5in]{images/example_lr_image.png} &
+    \includegraphics[trim=0 0 0 0, clip,
+        width=1.5in]{images/example_hr_image.png} \\
+    
+    \end{tabular}
+    \caption{Left: image upscaling using nearest neighbor. Right: The
+    original image before downscaling then upscaling.} 
+    \label{fig:exampleIntroFirst}
+\end{figure}
 
 Deep networks have greatly increased in popularity for instance and category
 recognition, sparked by work from Krizhevsky et al. \cite{AlexNet}. SR methods
@@ -82,14 +99,14 @@ behind adding this pixel-wise segmentation data later in this paper.
 
 %------------------------------------------------------------------------------
 
-\section{Related Work}
-Image SR is not a new idea. Before the advent of deep neural networks, more
-basic approaches to SR were available. The most naive is nearest neighbor which
-increases the resolution with a simple pixel copy of the nearest pixel in
-between the LR and HR images. A more common approach that typically gets better
-results and is the standard in many image editors is bicubic interpolation.
-However, neither of these two methods attempt to use any kind of local or
-global structure in the image to perform a better reconstruction.
+\subsection{Related Work}
+Before the advent of deep neural networks, basic approaches to SR were
+available. The most naive is nearest neighbor which increases the resolution
+with a simple pixel copy of the nearest pixel in between the LR and HR images.
+A more common approach that typically gets better results and is the standard
+in many image editors is bicubic interpolation.  However, neither of these two
+methods attempt to use any kind of local or global structure in the image to
+perform a better reconstruction.
 
 Other, more advanced non-deep approaches exist for SR. Chung et al.
 \cite{FractalSR} investigate the use of fractal patterns for the task of super
@@ -127,6 +144,57 @@ photorealistic image synthesis. The authors are able to get quote compelling
 results using only the semantic segmentations as input to their CNN. However,
 to our knowledge, there have been no papers published that attempt to merge
 together this explicit semantic data with a SR technique for better results.
+
+\subsection{Contribution}
+Semantic segmentation is a core focus of much computer vision work. In this
+paper, we are the first to explore the how the explicit addition of pixel-wise
+semantic segmentation masks affect an SR network's ability to produce quality
+results. We experiment with a high upscaling factor ($4 \times$). Our
+hypothesis was that the segmentations will clean up ambiguous edges, especially
+at high upscalings when the borders are especially fuzzy. We also evaluate the
+effect of these segmentations on both more traditional ConvNet architectures as
+well as GANs that have become more recently popular for the image generation
+domain.
+
+We describe our network architecture and segmentation pipeline in section \ref{sec:method}. A quantitative evaluation of results is included in section \ref{sec:evaluation}. Section \ref{sec:conclusion} contains concluding remarks and a direction for future work based on our segmentation approach. 
+
+%------------------------------------------------------------------------------
+
+\section{Method}
+\label{sec:method}
+
+\subsection{Architecture}
+
+\subsection{Human Segmentations}
+
+\subsection{Machine Segmentations}
+
+\begin{figure*}[ht!]
+\begin{center}
+    \begin{tabular}{ccc}
+        Original & Human Segmentation & Machine Segmentation \\
+    \includegraphics[trim=0 0 0 0, clip,
+        width=2.0in]{images/segmentation_original.png} &
+    \includegraphics[trim=0 0 0 0, clip,
+        width=2.0in]{images/segmentation_human.png} &
+    \includegraphics[trim=0 0 0 0, clip,
+        width=2.0in]{images/segmentation_machine.png} \\
+    \end{tabular}
+    
+	  	% \begin{tabular}{c}
+    %  	\includegraphics[width=6.5in]{images/used/jpg/generator}\\
+    %  	\includegraphics[width=6.5in]{images/used/jpg/discriminator}
+  	% \end{tabular}
+\end{center}
+  		\caption{Comparison of segmentations between human generated and auto generated. Left: the original image. Middle: A human annotated pixel-wise semantic segmentation. Right: A machine generated segmentation.} 
+	\label{fig:generator}
+\end{figure*}
+%------------------------------------------------------------------------------
+
+\section{Evaluation}
+\label{sec:evaluation}
+
+Filler
 
 %------------------------------------------------------------------------------
 
@@ -220,8 +288,12 @@ semantic masks at various resolutions in \cite{ImageSynthesis}, we expect that
 our results will be better at high upsampling factors.
 
 \section{Experiments}
+Filler
 
 \section{Conclusion and Future Work}
+\label{sec:conclusion}
+
+Filler
 
 {\small
 \bibliographystyle{ieee}
