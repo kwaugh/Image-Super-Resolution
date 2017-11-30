@@ -75,17 +75,17 @@ interpolation introduce many artifacts and produce visually displeasing images.
 Figure 1 displays an example of results obtained with a naive method as well as
 perfect results to which we aim to come closer.
 
-\begin{figure}[ht] 
+\begin{figure}[ht]
     \begin{tabular}{cc}
             NN & Original \\
     \includegraphics[trim=0 0 0 0, clip,
         width=1.5in]{images/example_lr_image.png} &
     \includegraphics[trim=0 0 0 0, clip,
         width=1.5in]{images/example_hr_image.png} \\
-    
+
     \end{tabular}
     \caption{Left: image upscaling using nearest neighbor. Right: The
-    original image before downscaling then upscaling.} 
+    original image before downscaling then upscaling.}
     \label{fig:exampleIntroFirst}
 \end{figure}
 
@@ -156,18 +156,61 @@ effect of these segmentations on both more traditional ConvNet architectures as
 well as GANs that have become more recently popular for the image generation
 domain.
 
-We describe our network architecture and segmentation pipeline in section \ref{sec:method}. A quantitative evaluation of results is included in section \ref{sec:evaluation}. Section \ref{sec:conclusion} contains concluding remarks and a direction for future work based on our segmentation approach. 
+We describe our network architecture and segmentation pipeline in section
+\ref{sec:method}. A quantitative evaluation of results is included in section
+\ref{sec:evaluation}. Section \ref{sec:conclusion} contains concluding remarks
+and a direction for future work based on our segmentation approach.
 
 %------------------------------------------------------------------------------
 
 \section{Method}
 \label{sec:method}
 
+Our solution to this task involves using a standard convolutional neural
+network based on the ResNet architecture \cite{ResNet} as well as a generative
+adversarial network \cite{GAN}. Both of these use modified architectures that
+were designed by the authors of \cite{SRGAN}. We modified the input layers of
+the generator network to take in the extra information supplied by the
+segmentation pipeline. The two variants of this pipeline will be discussed in
+future sections. When running the network in the standard ResNet mode, only the
+generator is trained. When running in GAN mode, the generator is first
+pretrained for $n$ epochs, followed by $m$ epochs of joint training between the
+generator and the discriminator. Typically $n < m$, but this is not a hard
+requirement.
+
 \subsection{Architecture}
+\begin{figure*}[ht!]
+\begin{center}
+    \begin{tabular}{c}
+	\includegraphics[width=6.5in]{images/generator_architecture.png}\\
+	\includegraphics[width=6.5in]{images/discriminator_architecture.png}
+    \end{tabular}
+\end{center}
+    \caption{Architecture of Generator and Discriminator Network with kernel
+    size, feature map count, and stride at each layer in the network. Diagrams
+    courtesy of \cite{SRGAN} as this was the basis of our architecture.}
+    \label{fig:generator}
+\end{figure*}
+
+Figure \ref{fig:generator} illustrates the architectures for both the generator
+and the discriminator.
 
 \subsection{Human Segmentations}
+All the datasets that we evaluated our system on contain human annotated
+segmentations. These datasets are \cite{Cityscapes} and \cite{MSCOCO}. Due to
+the large performance gap between current segmentation networks and human
+annotated results, we wanted to evaluate our method in the best case possible
+as a sanity test. If we were unable to get better results with the human
+segemntations, then it would be unlikely that we were get better performance
+with the machine segmentations at the present time, or even as they get better.
+Not until they became significantly better than humans would there be a chance
+of performance gains.
 
 \subsection{Machine Segmentations}
+Talk about reasons for using FCN \cite{FullyConvolutionalSS} over some other
+solution that gets better performance. Discuss how it wasn't actually all that
+crucial to get great performance out of the machine segmentations after we
+showed that human segmentations get gains over no segmentations.
 
 \begin{figure*}[ht!]
 \begin{center}
@@ -180,19 +223,34 @@ We describe our network architecture and segmentation pipeline in section \ref{s
     \includegraphics[trim=0 0 0 0, clip,
         width=2.0in]{images/segmentation_machine.png} \\
     \end{tabular}
-    
-	  	% \begin{tabular}{c}
-    %  	\includegraphics[width=6.5in]{images/used/jpg/generator}\\
-    %  	\includegraphics[width=6.5in]{images/used/jpg/discriminator}
-  	% \end{tabular}
 \end{center}
-  		\caption{Comparison of segmentations between human generated and auto generated. Left: the original image. Middle: A human annotated pixel-wise semantic segmentation. Right: A machine generated segmentation.} 
-	\label{fig:generator}
+                \caption{Comparison of segmentations between human generated
+                and auto generated. Left: the original image. Middle: A human
+                annotated pixel-wise semantic segmentation. Right: A machine
+                generated segmentation.}
+	\label{fig:segmentations}
 \end{figure*}
 %------------------------------------------------------------------------------
 
 \section{Evaluation}
 \label{sec:evaluation}
+While discussing this problem with our peers, some have argued that if having
+semantic segmentations added to the network would increase performance, the
+vanilla GAN in \cite{SRGAN} should learn how to segment items in the scene
+``under the hood''. We argued this was not true and pointed to \cite{ResNet} as
+an example. The authors of this paper showed that it was difficult for deep
+networks to learn identity mappings as the depth of networks increased. We
+believed that a similar phenominon would occur in this domain and that adding
+the segmentation information explicity, we could overcome this learning
+difficulty. Our evaluations show that this is the case.
+
+As is standard in other papers in this domain such as \cite{SRCNN},
+\cite{SRGAN}, \cite{PerceptualLosses}, \cite{DeeplyRecursive}, we use the
+metrics of peak signal-to-noise ratio (PSNR) and structural similarity (SSIM)
+as quantitative measurements. However, as shown in \cite{SRGAN}, quantitative
+measurements do not always translate to increases in perceptual qualtiy. As a
+result, we have decided to adopt the use of a mean opinion score (MOS) and have
+employed the use of our peers to help us gather data for this metric.
 
 Filler
 
@@ -205,7 +263,7 @@ semantic segmentation data from the datasets or out-of-the-box segmentation
 networks. One method we will use for integration this additional data will be
 to concatenate the segmentation data onto the feature maps of the early layers
 in the network. This will be evaluated on both the traditional ResNet variant
-that the authors introduce as well as the GAN version.  
+that the authors introduce as well as the GAN version.
 
 %------------------------------------------------------------------------------
 
@@ -292,6 +350,12 @@ Filler
 
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
+
+\subsection{Omissions from Project Proposal}
+I think in this section we should include a discussion of stuff that we said we
+would do in the proposal that we didn't get around to doing in the final
+project. We should justify why these were left out (whether it was because we
+ran out of time, didn't think it would be that useful/sightful, etc.)
 
 Filler
 
