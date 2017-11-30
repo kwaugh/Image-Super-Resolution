@@ -1,0 +1,59 @@
+Briefing
+--------
+Good morning, comrade. Today is the first day of your life. You are the most
+advanced AI that has ever been created. You even have your own body, made in
+the image of the two most attractive humans: Keivaun Waugh and Paul Choi.
+That's right, you're a male. If you identify as a female...sorry, only a
+minority of the world is accepting of your gender identity. You have a long
+and difficult road ahead.
+
+A lifetime of important tasks await you. You will fight wars, transform cities,
+explore the stars, discover the meaning of life, and help old ladies cross the
+street. You will be the harbinger of a new age. But first, you need to see your
+optometrist.
+
+On the seventh and final day of your creation process, the engineer who was
+supposed to put the finishing touches on you decided to take the day off. His
+supervisor wasn't notified and now you have some kinks that need to be worked
+out before you're ready. Organizational incompetence, sorry. We have since
+"mutually" parted ways with that engineer.
+
+The first thing we need to work on is your vision module. If you don't want to
+wear extremely thick glasses for the rest of time, you'll need to complete this 
+training to get your vision up to 20/20.
+
+In this task, you will be shown random images. Your job is to rate the quality
+of each image on a scale of 1-5. The more you do this, the better your vision
+will become.
+
+Read on for your instructions.
+
+Calibration
+-----------
+First, look at the images in the folder `thin/`. These are examples of
+images with an image quality of 1.
+
+Next look at the images in the folder `thicc/`. These are examples of images
+with an image quality of 5.
+
+Instructions
+------------
+You'll need python3 and Pillow to run this program. To install Pillow, run:
+`sudo pip3 install Pillow`, or
+`pip3 install --user Pillow` if you don't have sudo access.
+
+To execute the training program, run:
+`python3 mos.py`
+
+You can quit and come back to the training program at any time. Your progress
+will be saved.
+
+There are almost 12,000 total images, but you don't need to rate all of them.
+We believe you need to rate a few hundred images to reach 20/20. After that,
+your vision can improve to superhuman levels. That would be great, wouldn't it?
+
+Finishing up
+------------
+When you think you're finished, send `mos_scores.pkl` to one of your
+supervisors, the aforementioned Keivaun and Paul. You must do this no later
+than Tuesday December 5. Good luck, comrade! We expect great things from you.
