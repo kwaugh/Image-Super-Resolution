@@ -48,6 +48,11 @@ To execute the training program, run:
 You can quit and come back to the training program at any time. Your progress
 will be saved.
 
+After you are done with mos.py, please execute the second training program:
+`python3 mps.py`
+
+You can also quit this at any time.
+
 There are almost 12,000 total images, but you don't need to rate all of them.
 We believe you need to rate a few hundred images to reach 20/20. After that,
 your vision can improve to superhuman levels. That would be great, wouldn't it?
