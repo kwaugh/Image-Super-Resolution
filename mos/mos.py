@@ -110,7 +110,7 @@ def main():
     img_list = []
     for d in image_dirs:
         img_list += load_file_list(d, regx='\.png')
-    random.shuffle(sorted(img_list))
+    random.shuffle(img_list)
 
     window = tk.Tk()
 
