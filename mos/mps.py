@@ -49,8 +49,9 @@ def load_current_img_pair(img_pair_list, state):
     img_path_pair = img_pair_list[state['curr_idx']]
     return map(Image.open, img_path_pair)
 
-def receive_key(sel, side, img_pair_list, state, left_img_panel, right_img_panel):
-    img_path = img_pair_list[state['curr_idx']][1]
+def receive_key(sel, img_pair_list, state, left_img_panel, right_img_panel):
+    side = int('human' in img_pair_list[state['curr_idx']][1])
+    img_path = img_pair_list[state['curr_idx']][side]
     gen_type = gen_type_re.search(img_path).group(1)
     if gen_type:
         stat = gen_type
@@ -61,12 +62,12 @@ def receive_key(sel, side, img_pair_list, state, left_img_panel, right_img_panel
     cnt_key = '{}_count'.format(stat)
     avg_key = '{}_average'.format(stat)
     state[cnt_key] += 1
-    state[avg_key] += (int(sel == side) - state[avg_key]) / state[cnt_key]
+    state[avg_key] += ((1 - abs(side - sel)) - state[avg_key]) / state[cnt_key]
     state['curr_idx'] += 1
     write_state(state)
 
     left_img_tk, right_img_tk = map(
-            ImageTk.PhotoImage,
+            ImageTk.PhotoImage, 
             load_current_img_pair(img_pair_list, state))
     left_img_panel.configure(image=left_img_tk)
     left_img_panel.image = left_img_tk
@@ -81,30 +82,33 @@ def main():
     img_pair_list = []
     for p in image_dir_pairs:
         list1 = load_file_list(p[0], regx='gen\.png')
-        random.shuffle(list1)
         list2 = load_file_list(p[1], regx='gen\.png')
-        random.shuffle(list2)
-        img_pair_list += zip(list1, list2)
+        for t in zip(list1, list2):
+            rnd = random.randint(0, 1)
+            img_pair_list.append((t[not rnd], t[rnd]))
     random.shuffle(img_pair_list)
 
     window = tk.Tk()
 
     img_frame = tk.Frame()
-    img_tk_pair = tuple(map(
+    left_img_tk, right_img_tk = map(
             ImageTk.PhotoImage, 
-            load_current_img_pair(img_pair_list, state)))
-    random_side = random.randint(0, 1)
-    left_img_panel = tk.Label(img_frame, image=img_tk_pair[int(not random_side)])
-    right_img_panel = tk.Label(img_frame, image=img_tk_pair[random_side])
+            load_current_img_pair(img_pair_list, state))
+    left_img_panel = tk.Label(img_frame, image=left_img_tk)
+    right_img_panel = tk.Label(img_frame, image=right_img_tk)
     left_img_panel.pack(side=tk.LEFT)
     right_img_panel.pack(side=tk.LEFT)
     img_frame.pack()
 
-    instructions = 'Press left arrow key if the left image is of higher quality, or right arrow key if the right image is of higher quality.'
+    instructions = '''Left arrow key: Left image quality is greater
+Right arrow key: Right image quality is greater
+Down or up arrow key: They appear to be the same'''
     tk.Label(window, text=instructions).pack()
 
-    window.bind('<Left>', lambda _: receive_key(0, random_side, img_pair_list, state, left_img_panel, right_img_panel))
-    window.bind('<Right>', lambda _: receive_key(1, random_side, img_pair_list, state, left_img_panel, right_img_panel))
+    window.bind('<Left>', lambda _: receive_key(0, img_pair_list, state, left_img_panel, right_img_panel))
+    window.bind('<Right>', lambda _: receive_key(1, img_pair_list, state, left_img_panel, right_img_panel))
+    window.bind('<Down>', lambda _: receive_key(.5, img_pair_list, state, left_img_panel, right_img_panel))
+    window.bind('<Up>', lambda _: receive_key(.5, img_pair_list, state, left_img_panel, right_img_panel))
 
     window.mainloop()
 
