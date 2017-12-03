@@ -1,12 +1,6 @@
-- Evaluate trained GAN on cityscapes for baseline
-- Train SRResNet on cityscapes for baseline
-- Evaluate SRResNet on cityscapes for baseline
-
-- Add segmentation data to SRResNet in feature maps
-- Evaluate new SRResNet with segmentation data
-
-- Add segmentation data to SRGAN (just the generator)
-- Evaluate the SRGAN with the segmentation data
-
-- Experiment with different layers of adding segmentation data
-- Hyperparameter tweaking
+- Sunday: coco segs
+- Tuesday: script to collect mos
+- Tuesday: add mos scores to poster
+- Friday: paper
+  - Bulk of it needs to be done before Thursday night
+  - Tuesday, Wednesday, and Thursday are the workhorse days
