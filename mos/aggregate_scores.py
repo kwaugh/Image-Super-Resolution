@@ -1,3 +1,4 @@
+import operator
 import os
 import pickle
 import re
@@ -46,8 +47,10 @@ def main():
             weight = state['{}_count'.format(x)] / total_counts[x]
             final_averages[x] += average * weight
 
-    for x in image_dirs + image_types:
-        print('{} MOS score: {}'.format(x, final_averages[x]))
+    scores = [(x, final_averages[x]) for x in image_dirs + image_types]
+    scores.sort(key=operator.itemgetter(1), reverse=True)
+    for score in scores:
+        print('{} MOS score: {}'.format(*score))
 
     mps_files = load_file_list('.', regx='mps_scores_.+\.pkl')
     mps_states = list(map(load_state, mps_files))
