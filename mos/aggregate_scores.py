@@ -50,7 +50,7 @@ def main():
     scores = [(x, final_averages[x]) for x in image_dirs + image_types]
     scores.sort(key=operator.itemgetter(1), reverse=True)
     for score in scores:
-        print('{} MOS score: {}'.format(*score))
+        print('{} MOS score: {:.2f}'.format(*score))
 
     mps_files = load_file_list('.', regx='mps_scores_.+\.pkl')
     mps_states = list(map(load_state, mps_files))
@@ -68,7 +68,7 @@ def main():
             final_averages[x] += average * weight
     
     for x in mps_dirs:
-        print('{} MPS score: {}'.format(x, final_averages[x]))
+        print('{} MPS score: {:.2f}'.format(x, final_averages[x]))
 
 if __name__ == '__main__':
     main()
