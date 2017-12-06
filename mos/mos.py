@@ -6,7 +6,7 @@ import subprocess
 import sys
 import tkinter as tk
 
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from PIL import ImageTk, Image
 
 seed = 1337
