@@ -269,7 +269,7 @@ def train_srgan():
                 step_time = time.time()
                 b_imgs_384 = tl.prepro.threading_data(
                         train_hr_imgs[idx : idx + batch_size],
-                        fn=crop_sub_imgs_fn, is_random=True)
+                        fn=crop_sub_imgs_fn, is_random=False)
                 if (tl.global_flag['use_segs']):
                     b_segs = tl.prepro.threading_data(
                             train_segs_imgs[idx : idx + batch_size],

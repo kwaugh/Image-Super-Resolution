@@ -16,28 +16,19 @@ from config import *
 
 def get_imgs_fn(file_name, path, interp='bicubic'):
     """ Input an image path and name, return an image array """
-    # return scipy.misc.imread(path + file_name).astype(np.float)
-
+    x = scipy.misc.imread(os.path.join(path, file_name), mode='RGB')
     return imresize(
-            scipy.misc.imread(os.path.join(path, file_name), mode='RGB'),
-            0.5,
+            crop_square(x),
+            size=(384, 384),
             interp=interp,
             mode=None)
-
-    # img = scipy.misc.imread(path + file_name, mode='RGB')
-    # # resize the smallest dimension to be 384
-    # h = len(img)
-    # w = len(img[0])
-    # min_dim = min(h, w)
-    # scale_factor = float(384) / float(min_dim)
-    # return crop(scipy.misc.imresize(img, size=scale_factor, interp='bicubic'), 384, 384)
 
 def crop_sub_imgs_fn(x, is_random=True):
     h = len(x)
     w = len(x[0])
     if h < 384 or w < 384:
         x = imresize(x, size=(384, 384), interp='bicubic')
-    else:
+    elif h != 384 or w != 384:
         x = crop(x, wrg=384, hrg=384, is_random=is_random)
     x = x / (255. / 2.)
     x = x - 1.
