@@ -33,7 +33,12 @@ def get_imgs_fn(file_name, path, interp='bicubic'):
     # return crop(scipy.misc.imresize(img, size=scale_factor, interp='bicubic'), 384, 384)
 
 def crop_sub_imgs_fn(x, is_random=True):
-    x = crop(x, wrg=384, hrg=384, is_random=is_random)
+    h = len(x)
+    w = len(x[0])
+    if h < 384 or w < 384:
+        x = imresize(x, size=(384, 384), interp='bicubic')
+    else:
+        x = crop(x, wrg=384, hrg=384, is_random=is_random)
     x = x / (255. / 2.)
     x = x - 1.
     return x
@@ -59,15 +64,13 @@ def downsample_preserve_aspect_ratio_fn(x, size=[96, 96], mean_center=True):
 def upsample_fn(x):
     return imresize(x, size=[384, 384], interp='bicubic', mode=None)
 
-# Given a cityscapes image path, remove the type and ext
-# Input: dataset_dir/train/aachen_aachen_000000_000019_leftImg8bit.png
-# Output: aachen_aachen_000000_000019
+# Given an ADE20K image path, remove the ext
+# Input: ADE_train_00000001.jpg
+# Output: ADE_train_00000001
 def get_frame_key(path):
     filename = os.path.basename(path)
     elems = filename.split('_')
-    if len(elems) < 5:
-        sys.stderr.write('Unknown image filename format: {}\n'.format(path))
-    return '_'.join(elems[:4])
+    return '_'.join(elems[:3])
 
 def load_seg_file_list(img_list, segment_suffix):
     files = []

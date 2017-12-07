@@ -154,7 +154,7 @@ def main(argv=None):
     if not os.path.exists(cfg.segment_preprocessed_path):
         os.makedirs(cfg.segment_preprocessed_path)
 
-    img_list = sorted(tl.files.load_file_list(path=cfg.hr_img_path, regx='.*.png', printable=False))
+    img_list = sorted(tl.files.load_file_list(path=cfg.hr_img_path, regx='.*.jpg', printable=False))
     rem = len(img_list) % FLAGS.batch_size
     for idx in range(0, len(img_list) - rem, FLAGS.batch_size):
         b_imgs_list = img_list[idx : idx + FLAGS.batch_size]

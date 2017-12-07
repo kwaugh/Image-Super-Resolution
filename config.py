@@ -29,24 +29,24 @@ config.TRAIN.decay_every = int(config.TRAIN.n_epoch / 2)
 # config.TRAIN.lr_img_path = 'data2017/DIV2K_train_LR_bicubic/X4/'
 
 # Streetview dataset
-config.TRAIN.hr_img_path = 'leftImg8bit/train/'
+config.TRAIN.hr_img_path = 'ADEChallengeData2016/images/training'
 if config.AUTO_SEGMENTATIONS:
-    config.TRAIN.segment_preprocessed_path = 'auto_segmentations/train/preprocessed'
+    config.TRAIN.segment_preprocessed_path = 'ADEChallengeData2016/images/training/auto_preprocessed'
 else:
-    config.TRAIN.segment_preprocessed_path = 'gtFine/train/preprocessed'
-config.TRAIN.cityscapes_segment_path = 'gtFine/train'
-config.TRAIN.cityscapes_segment_suffix = 'gtFine_color.png'
+    config.TRAIN.segment_preprocessed_path = 'ADEChallengeData2016/annotation/training'
+# config.TRAIN.cityscapes_segment_path = 'gtFine/train'
+# config.TRAIN.cityscapes_segment_suffix = 'gtFine_color.png'
 
 config.VALID = edict()
 ## test set location
-config.VALID.hr_img_path = 'leftImg8bit/val/'
-config.VALID.lr_img_path = 'leftImg8bit/val/'
+config.VALID.hr_img_path = 'ADEChallengeData2016/images/validation'
+config.VALID.lr_img_path = 'ADEChallengeData2016/images/validation'
 if config.AUTO_SEGMENTATIONS:
-    config.VALID.segment_preprocessed_path = 'auto_segmentations/val/preprocessed/'
+    config.VALID.segment_preprocessed_path = 'ADEChallengeData2016/images/validation/auto_preprocessed'
 else:
-    config.VALID.segment_preprocessed_path = 'gtFine/val/preprocessed/'
-config.VALID.cityscapes_segment_path = 'gtFine/val/'
-config.VALID.cityscapes_segment_suffix = 'gtFine_color.png'
+    config.VALID.segment_preprocessed_path = 'ADEChallengeData2016/annotation/validation'
+# config.VALID.cityscapes_segment_path = 'gtFine/val/'
+# config.VALID.cityscapes_segment_suffix = 'gtFine_color.png'
 
 def log_config(filename, cfg):
     with open(filename, 'w') as f:

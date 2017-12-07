@@ -89,8 +89,8 @@ def read_all_segs(seg_list, path='', n_threads=4):
 
 def train_srgan():
     ## create folders to save result images and trained model
-    save_dir_ginit = "samples/{}_{}_{}_ginit".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
-    save_dir_gan = "samples/{}_{}_{}_gan".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
+    save_dir_ginit = "samples/{}_{}_{}_ade_ginit".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
+    save_dir_gan = "samples/{}_{}_{}_ade_gan".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
     tl.files.exists_or_mkdir(save_dir_ginit)
     tl.files.exists_or_mkdir(save_dir_gan)
     checkpoint_dir = "checkpoint"  # checkpoint_resize_conv
@@ -118,15 +118,15 @@ def train_srgan():
     else:
         train_hr_img_list = sorted(tl.files.load_file_list(
             path=config.TRAIN.hr_img_path,
-            regx='.*.png',
+            regx='.*.jpg',
             printable=False))
         valid_hr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.hr_img_path,
-            regx='.*hr.png',
+            regx='.*hr.jpg',
             printable=False))
         valid_lr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.lr_img_path,
-            regx='.*lr.png',
+            regx='.*lr.jpg',
             printable=False))
     # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))[:8]
 
@@ -196,17 +196,17 @@ def train_srgan():
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
     tl.layers.initialize_global_variables(sess)
     tl.global_flag['loaded_weights'] = False
-    if tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/g_{}_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS), network=net_g) is False:
+    if tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+'/g_{}_{}_{}_ade.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS), network=net_g) is False:
         if tl.files.load_and_assign_npz(
                 sess=sess,
-                name=checkpoint_dir+'/g_{}_{}_{}_init.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
+                name=checkpoint_dir+'/g_{}_{}_{}_ade_init.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
                 network=net_g) is not False:
             tl.global_flag['loaded_weights'] = True
     else:
         tl.global_flag['loaded_weights'] = True
     tl.files.load_and_assign_npz(
             sess=sess,
-            name=checkpoint_dir+'/d_{}_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
+            name=checkpoint_dir+'/d_{}_{}_{}_ade.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
             network=net_d)
 
     ###============================= LOAD VGG ===============================###
@@ -302,7 +302,7 @@ def train_srgan():
             if (epoch != 0) and (epoch % 10 == 0):
                 tl.files.save_npz(
                         net_g.all_params,
-                        name=checkpoint_dir+'/g_{}_{}_{}_init.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
+                        name=checkpoint_dir+'/g_{}_{}_{}_ade_init.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
                         sess=sess)
 
     ###========================= train GAN (SRGAN) =========================###
@@ -380,16 +380,16 @@ def train_srgan():
         if (epoch != 0) and (epoch % 5 == 0):
             tl.files.save_npz(
                     net_g.all_params,
-                    name=checkpoint_dir+'/g_{}_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
+                    name=checkpoint_dir+'/g_{}_{}_{}_ade.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
                     sess=sess)
             tl.files.save_npz(
                     net_d.all_params,
-                    name=checkpoint_dir+'/d_{}_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
+                    name=checkpoint_dir+'/d_{}_{}_{}_ade.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
                     sess=sess)
 
 def train_srresnet():
     ## create folders to save result images and trained model
-    save_dir = "samples/{}_{}_{}_resnet".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
+    save_dir = "samples/{}_{}_{}_ade_resnet".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
     tl.files.exists_or_mkdir(save_dir)
     checkpoint_dir = "checkpoint"  # checkpoint_resize_conv
     tl.files.exists_or_mkdir(checkpoint_dir)
@@ -416,15 +416,15 @@ def train_srresnet():
     else:
         train_hr_img_list = sorted(tl.files.load_file_list(
             path=config.TRAIN.hr_img_path,
-            regx='.*.png',
+            regx='.*.jpg',
             printable=False))
         valid_hr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.hr_img_path,
-            regx='.*hr.png',
+            regx='.*hr.jpg',
             printable=False))
         valid_lr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.lr_img_path,
-            regx='.*lr.png',
+            regx='.*lr.jpg',
             printable=False))
     # train_hr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.hr_img_path, regx='.*.png', printable=False))
     # # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))
@@ -483,7 +483,7 @@ def train_srresnet():
     tl.layers.initialize_global_variables(sess)
     tl.files.load_and_assign_npz(
             sess=sess,
-            name=checkpoint_dir+'/g_{}_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
+            name=checkpoint_dir+'/g_{}_{}_{}_ade.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
             network=net_g)
 
     ###============================= LOAD VGG ===============================###
@@ -591,13 +591,13 @@ def train_srresnet():
         if (epoch != 0) and (epoch % 10 == 0):
             tl.files.save_npz(
                     net_g.all_params,
-                    name=checkpoint_dir+'/g_{}_{}_{}.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
+                    name=checkpoint_dir+'/g_{}_{}_{}_ade.npz'.format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS),
                     sess=sess)
 
 
 def evaluate():
     ## create folders to save result images
-    save_dir = "samples/{}_{}_{}".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
+    save_dir = "samples/{}_{}_{}_ade".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
     tl.files.exists_or_mkdir(save_dir)
     checkpoint_dir = "checkpoint"
 
@@ -621,11 +621,11 @@ def evaluate():
     else:
         valid_hr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.hr_img_path,
-            regx='.*hr.png',
+            regx='.*hr.jpg',
             printable=False))
         valid_lr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.lr_img_path,
-            regx='.*lr.png',
+            regx='.*lr.jpg',
             printable=False))
 
     print('valid_hr_img_list:', len(valid_hr_img_list))
