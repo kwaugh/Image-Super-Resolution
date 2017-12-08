@@ -15,18 +15,12 @@ config.TRAIN.beta1 = 0.9
 
 ## initialize G
 config.TRAIN.n_epoch_init = 10 # originally was 100
-    # config.TRAIN.lr_decay_init = 0.1
-    # config.TRAIN.decay_every_init = int(config.TRAIN.n_epoch_init / 2)
 
 ## adversarial learning (SRGAN)
 # 80 epochs takes about 12 hours
 config.TRAIN.n_epoch = 80 # originally was 2000
 config.TRAIN.lr_decay = 0.1
 config.TRAIN.decay_every = int(config.TRAIN.n_epoch / 2)
-
-## train set location
-# config.TRAIN.hr_img_path = 'data2017/DIV2K_train_HR/'
-# config.TRAIN.lr_img_path = 'data2017/DIV2K_train_LR_bicubic/X4/'
 
 # Streetview dataset
 config.TRAIN.hr_img_path = 'leftImg8bit/train/'

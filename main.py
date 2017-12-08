@@ -89,10 +89,6 @@ def read_all_segs(seg_list, path='', n_threads=4):
 
 def train_srgan():
     ## create folders to save result images and trained model
-    save_dir_ginit = "samples/{}_{}_{}_ginit".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
-    save_dir_gan = "samples/{}_{}_{}_gan".format(tl.global_flag['mode'], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
-    tl.files.exists_or_mkdir(save_dir_ginit)
-    tl.files.exists_or_mkdir(save_dir_gan)
     checkpoint_dir = "checkpoint"  # checkpoint_resize_conv
     tl.files.exists_or_mkdir(checkpoint_dir)
 
@@ -128,7 +124,6 @@ def train_srgan():
             path=config.VALID.lr_img_path,
             regx='.*lr.png',
             printable=False))
-    # train_lr_img_list = sorted(tl.files.load_file_list(path=config.TRAIN.lr_img_path, regx='.*.png', printable=False))[:8]
 
     ## If your machine have enough memory, please pre-load the whole train set.
     train_hr_imgs = read_all_imgs(train_hr_img_list, path=config.TRAIN.hr_img_path, n_threads=4)
@@ -239,10 +234,6 @@ def train_srgan():
     if (tl.global_flag['use_segs']):
         sample_segs_96 = tl.prepro.threading_data(sample_segs, fn=lambda x: x)
         print('sample segs sub-image:', sample_segs_96.shape, sample_segs_96.min(), sample_segs_96.max())
-    # tl.vis.save_images(sample_imgs_96, [ni, ni], save_dir_ginit+'/_train_sample_96.png')
-    # tl.vis.save_images(sample_imgs_384, [ni, ni], save_dir_ginit+'/_train_sample_384.png')
-    # tl.vis.save_images(sample_imgs_96, [ni, ni], save_dir_gan+'/_train_sample_96.png')
-    # tl.vis.save_images(sample_imgs_384, [ni, ni], save_dir_gan+'/_train_sample_384.png')
 
     ###========================= initialize G ====================###
     ## fixed learning rate
@@ -295,8 +286,6 @@ def train_srgan():
                     out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96, t_seg: sample_segs_96})
                 else:
                     out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96})
-                # print("[*] save images")
-                # tl.vis.save_images(out, [ni, ni], save_dir_ginit+'/train_%d.png' % epoch)
 
             ## save model
             if (epoch != 0) and (epoch % 10 == 0):
@@ -517,10 +506,6 @@ def train_srresnet():
     if (tl.global_flag['use_segs']):
         sample_segs_96 = tl.prepro.threading_data(sample_segs, fn=lambda x: x)
         print('sample segs sub-image:', sample_segs_96.shape, sample_segs_96.min(), sample_segs_96.max())
-    # tl.vis.save_images(sample_imgs_96, [ni, ni], save_dir_ginit+'/_train_sample_96.png')
-    # tl.vis.save_images(sample_imgs_384, [ni, ni], save_dir_ginit+'/_train_sample_384.png')
-    # tl.vis.save_images(sample_imgs_96, [ni, ni], save_dir_gan+'/_train_sample_96.png')
-    # tl.vis.save_images(sample_imgs_384, [ni, ni], save_dir_gan+'/_train_sample_384.png')
 
     ###========================= train G ====================###
     ## fixed learning rate
@@ -584,8 +569,6 @@ def train_srresnet():
                 out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96, t_seg: sample_segs_96})
             else:
                 out = sess.run(net_g_test.outputs, {t_image: sample_imgs_96})
-            # print("[*] save images")
-            # tl.vis.save_images(out, [ni, ni], save_dir_ginit+'/train_%d.png' % epoch)
 
         ## save model
         if (epoch != 0) and (epoch % 10 == 0):
