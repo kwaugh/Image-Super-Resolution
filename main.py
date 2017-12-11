@@ -621,11 +621,11 @@ def evaluate():
     else:
         valid_hr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.hr_img_path,
-            regx='.*hr.jpg',
+            regx='.jpg',
             printable=False))
         valid_lr_img_list = sorted(tl.files.load_file_list(
             path=config.VALID.lr_img_path,
-            regx='.*lr.jpg',
+            regx='.jpg',
             printable=False))
 
     print('valid_hr_img_list:', len(valid_hr_img_list))
