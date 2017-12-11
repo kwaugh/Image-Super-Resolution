@@ -184,6 +184,23 @@ photorealistic image synthesis. The authors produce images of photographic
 quality using only the semantic segmentations as input to their CNN. To our
 knowledge, semantic segmentation data has not been utilized for the SR task.
 
+\subsection{Motivation}
+Chen and Koltun achieve extremely realistic results for image synthesis using
+solely semantic segmentation data. Their approach has extremely high capacity
+for learning how to synthesize objects and regions based on their semantic
+class and what it sees during training. We believe that this ability can be
+utilized in super-resolution networks to produce more realistic upsamplings. In
+discussions with our peers, some argued that the network should learn object
+boundaries and semantic classes and incorporate this data on its own. However,
+we know that DNNs often need human intervention in order to learn in a certain
+way. One example of this is residual networks \cite{ResNet}. The intuition
+behind the benefit of ResNets and the skip connections used is that they assist
+the network in learning identity mappings when they are optimal. Theoretically
+a layer can learn identity mappings, but it is much easier to do so when there
+is a skip connection. Similarly, we believe that explicitly providing semantic
+segmentations will guide the network in learning semantic class-specific
+knowledge and utilizing the class boundaries.
+
 \subsection{Contribution}
 In this paper, we believe we are the first to explore how the addition of
 pixel-wise semantic segmentation masks affect a network's ability to
@@ -464,23 +481,58 @@ networks. We find that training SR networks with semantic layouts as additional
 input result in super-resolved images with better quantitative and qualitative
 measurements than without. In experiments with human audience, raters preferred
 images super-resolved with segmentations in both mean opinion score and direct
-comparisons. We see the most improvement when using human-annotated
-segmentations. Machine segmentations provide some benefit in most situations,
-but as expected, the gains are not as pronounced as when using human
-annotations. We expect that a fully-automatic approach will have much better
-performance gains when using more state-of-the-art segmentation networks than
-the FCN we chose to use. Future improvements to the state-of-the-art in the
-semantic segmentation task will give results closer to human-annotated
-performance. Currently we don't believe that the slight increase in performance
-in using FCN segmentations is worth the additional implementation and training
-time, but stronger segmentation networks will result in tangible improvements
-to super-resolution which are both evident in quantitative measurements and
-discernible to the human eye.
+comparisons. In quantitative evaluation, a ResNet-based approach with human
+segmentations is the strongest, while in qualitative evaluation SRGAN with
+human or machine segmentation produces the most realistic results. Machine
+segmentations provide some benefit in most situations, but as expected, the
+gains are not as pronounced as when using human annotations. We expect that a
+fully-automatic approach will have much better performance gains when using
+more state-of-the-art segmentation networks than the FCN we chose to use.
+Future improvements to the state-of-the-art in the semantic segmentation task
+will give results closer to human-annotated performance. Currently we don't
+believe that the slight increase in performance in using FCN segmentations is
+worth the additional implementation and training time, but stronger
+segmentation networks will result in tangible improvements to super-resolution
+which are both evident in quantitative measurements and discernible to the
+human eye.
 
 %------------------------------------------------------------------------------
 
 \section{Future Work}
-Filler. Include omissions from project proposal.
+There are many interesting directions for future work on utilizing semantic
+segmentations for SR. The first and most compelling direction is to investigate
+other ways of incorporating the segmentation in the network, something we noted
+in our project proposal but didn't have time to explore. Two key properties of
+the Cascaded Refinement Network (CRN) of Chen and Koltun \cite{ImageSynthesis}
+come to mind. In a CRN, the input layer is the only semantic layout,
+downsampled to a very small resolution. The feature maps then undergo repeated
+layers of refinement in which the resolution is doublted and the number of
+feature maps increased (or decreased when approaching output) in each layer. At
+each of these refinement steps, the semantic layout is provided again, scaled
+to the appropriate resolution. In our DNN-based architecture based on
+\cite{SRGAN}, we use two sub-pixel convolution layers (proposed by Shi et al.
+\cite{SubPixelConv}) to perform a $4 \times$ upsampling. In the style of a CRN,
+we could experiment with providing the semantic layout as additional input in
+these two layers, which may result in even sharper object boundaries.
+
+Another property of a CRN is its extremely high capacity. Chen and Koltun find
+that maximizing the available GPU memory by increasing the number of feature
+maps in each layer resulted in strictly better performance in the image
+synthesis task.  Increasing the number of features maps in our own architecture
+may allow the network to learn more information about what different semantic
+classes ``look like'' and result in more realistic upsamplings.
+
+Unrelated to CRNs, another possible direction is to explore cases where the
+segmenations could have more impact on the results and be much more important
+for convincing super-resolution. For example, upsampling images which are
+extremely low-resolution may require more semantic class-specific knowledge
+from the network in order to produce realistic objects as there are very few
+signals for texture in very low-res images. A similar situation is using very
+high upsampling factors. This requires the network to hallucinate more
+high-frequency changes in order to produce a result with good textures. In both
+of these extreme cases, semantic segmentations could guide the network in
+making smart decisions, and the previously mentioned possible modifications to
+the network could be of great assistance here.
 
 {\small
 \bibliographystyle{ieee}
