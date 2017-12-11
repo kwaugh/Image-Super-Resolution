@@ -84,9 +84,9 @@ indistinguishable from ground truth.
     \begin{tabular}{cc}
         Ours & Original \\
         \includegraphics[trim=0 0 0 0, clip,
-            width=1.5in]{images/example_hr_image.png} &
+            width=1.5in]{images/splash_ours.png} &
         \includegraphics[trim=0 0 0 0, clip,
-            width=1.5in]{images/example_hr_image.png} \\
+            width=1.5in]{images/splash_gt.png} \\
     \end{tabular}
     \caption{Our super-resolved image (left) compares favorably to the original
     image (right).}
@@ -102,31 +102,18 @@ techniques in order to achieve sharper and more convincing SR results.
 
 \begin{figure*}[ht!]
     \begin{center}
-        \begin{tabular}{cccc}
-            Bicubic & SRResnet & With Machine Segmentation &
-            With Human Segmentation \\
+        \begin{tabular}{ccc}
+            SRGAN & With Human Segmentation & Original \\
             \includegraphics[trim=0 0 0 0, clip,
-                width=1.5in]{images/segmentation_original.png} &
+                width=2.2in]{images/comp_srgan_none.png} &
             \includegraphics[trim=0 0 0 0, clip,
-                width=1.5in]{images/segmentation_original.png} &
+                width=2.2in]{images/comp_srgan_human.png} &
             \includegraphics[trim=0 0 0 0, clip,
-                width=1.5in]{images/segmentation_original.png} &
-            \includegraphics[trim=0 0 0 0, clip,
-                width=1.5in]{images/segmentation_original.png} \\
-            Nearest Neighbor & SRGAN & With Machine Segmentation &
-            With Human Segmentation \\
-            \includegraphics[trim=0 0 0 0, clip,
-                width=1.5in]{images/segmentation_original.png} &
-            \includegraphics[trim=0 0 0 0, clip,
-                width=1.5in]{images/segmentation_original.png} &
-            \includegraphics[trim=0 0 0 0, clip,
-                width=1.5in]{images/segmentation_original.png} &
-            \includegraphics[trim=0 0 0 0, clip,
-                width=1.5in]{images/segmentation_original.png}
+                width=2.2in]{images/comp_gt.png}
         \end{tabular}
     \end{center}
-    \caption{Comparison of bicubic and nearest neighbor interpolation, prior
-    DNN-based approaches, and our approach using human segmentations.}
+    \caption{Comparison of prior GAN-based approach, our approach using human
+    segmentations, and the original HR image.}
     \label{fig:methodComparison}
 \end{figure*}
 
@@ -391,7 +378,7 @@ loss. We find that our best approach is SRResNet modified to use human
 segmentations. Both human and machine segmentations also improve the
 performance of SRGAN, while machine segmentations did not improve SRResNet.
 
-Unfortunately, due to time constraints, did not finish running our ADE20K
+Unfortunately, due to time constraints we did not finish running our ADE20K
 experiments to the same extent as the Cityscapes ones, but find a similar
 performance gain in using SRGAN with human segmentations over bicubic
 interpolation.
