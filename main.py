@@ -672,7 +672,7 @@ def evaluate():
     ###========================== RESTORE G =============================###
     sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=False))
     tl.layers.initialize_global_variables(sess)
-    checkpoint_file = '/g_{}_{}_{}.npz'.format(tl.global_flag['mode'].split('-')[1], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
+    checkpoint_file = '/g_{}_{}_{}_ade.npz'.format(tl.global_flag['mode'].split('-')[1], tl.global_flag['use_segs'], config.AUTO_SEGMENTATIONS)
     tl.files.load_and_assign_npz(sess=sess, name=checkpoint_dir+checkpoint_file, network=net_g)
 
     ###======================= EVALUATION =============================###
