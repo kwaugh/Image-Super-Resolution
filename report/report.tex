@@ -344,11 +344,11 @@ experiments are performed with a $4 \times$ upscaling factor. We use Cityscapes
 for the majority of our experiments, but we also experiment with ADE20K to
 demonstrate how a segmentation network optimized for a particular dataset might
 perform. Our baselines are SRResNet and SRGAN (the ResNet- and GAN-based
-approaches of \cite{SRGAN}). Tables \ref{fig:quantResultsCityscapes} and
+approaches of \cite{SRGAN}). Figures \ref{fig:quantResultsCityscapes} and
 \ref{fig:quantResultsADE} show the results of thexe experiments.
 
 \begin{figure*}[ht!]
-    \begin{centering}
+    \begin{center}
         \small
         \begin{tabular}{c ccccccc}
             \textbf{Cityscapes} & Bicubic & SRGAN & SRGAN (machine) & SRGAN
@@ -359,7 +359,7 @@ approaches of \cite{SRGAN}). Tables \ref{fig:quantResultsCityscapes} and
             SSIM & 0.805 & 0.80 & 0.809 & 0.811 & 0.840 & 0.839 &
             \textbf{0.850}
         \end{tabular}
-    \end{centering}
+    \end{center}
     \caption{Comparison of baselines and our method using Cityscapes. Highest
     measures in bold. Machine indicates machine segmentations, human indicates
     human segmentations.}
@@ -386,7 +386,10 @@ loss. We find that our best approach is SRResNet modified to use human
 segmentations. Both human and machine segmentations also improve the
 performance of SRGAN, while machine segmentations did not improve SRResNet.
 
-TODO: ADE20K results discussion.
+We unfortunately did not have enough time to finish running our ADE20K
+experiments to the same extent as the Cityscapes ones, but find a similar
+peformance gain in using SRGAN with human segmentations over bicubic
+interpolation.
 
 \subsection{Mean opinion score (MOS) testing}
 We performed a MOS test to evaluate the quality of our approach using human
@@ -399,11 +402,11 @@ as well as the ground truth images (score of 5). Each rater rated versions of
 images upsampled using nearest neighbor and bicubic interpolation, SRResNet,
 SRGAN, and different variations of our approach using human and machine
 segmentations, as well as the ground truth images. Raters were unaware of the
-different methods being used. Table \ref{fig:mos} shows the results of this
+different methods being used. Figures \ref{fig:mos} shows the results of this
 experiment.
 
 \begin{figure*}[ht!]
-    \begin{centering}
+    \begin{center}
         \small
         \begin{tabular}{c ccccccccc}
             \textbf{Cityscapes} & NN & Bicubic & SRG & SRG (machine) & SRG
@@ -411,7 +414,7 @@ experiment.
             \hline
             MOS & 1.23 & 1.73 & 3.62 & \textbf{3.88} & 3.85 & 2.94 & 2.93 & 3.09 & 4.63
         \end{tabular}
-    \end{centering}
+    \end{center}
     \caption{MOS comparison of baselines and our method using Cityscapes. Highest
     measure in bold.}
     \label{fig:mos}
@@ -429,6 +432,14 @@ nearest neighbor, bicubic, and high-resolution methods are very similar to
 their MOS scores. Though this isn't strong evidence for anything, it might
 suggest that this method of calibration contributes to a more consistent MOS
 score.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[trim=0 0 0 0, clip,
+            width=3in]{images/mos.png}
+    \end{center}
+    \caption{A screenshot of our MOS application. Pictured is an image upsampled with SRGAN.}
+\end{figure}
 
 \subsection{Mean preference score testing}
 While we received favorable results with our MOS testing, we wanted to perform
@@ -449,7 +460,7 @@ quality is found for each comparison, we give a score of 1, 0, or 0.5,
 respectively. The final MPS of a method is the average of all of these scores.
 When the rater indicates no difference in image quality, the average is pulled
 further towards a score of 0.5, which implies no perceptual difference in
-quality. Table \ref{fig:mps} shows the results of this experiment.
+quality. Figure \ref{fig:mps} shows the results of this experiment.
 
 \begin{figure*}[ht!]
     \begin{center}
@@ -471,6 +482,17 @@ kinds of differences they mainly looked for, our raters mentioned edges of
 objects as a frequent indicator. Street signs, cars, and the car brand emblem
 on the hood of the car in all Cityscapes images were popular choices of objects
 for differentiation.
+
+\begin{figure*}[ht!]
+    \begin{center}
+        \includegraphics[trim=0 0 0 0, clip,
+            width=6in]{images/mps.png}
+    \end{center}
+    \caption{A screenshot of our MPS application. Left: Image generated with SRGAN
+    using human segmentations. Right: Image generated with SRGAN without
+    segmentations. The left image tends to have sharper object boundaries and
+    less blur.}
+\end{figure*}
 
 %------------------------------------------------------------------------------
 
@@ -533,6 +555,13 @@ high-frequency changes in order to produce a result with good textures. In both
 of these extreme cases, semantic segmentations could guide the network in
 making smart decisions, and the previously mentioned possible modifications to
 the network could be of great assistance here.
+
+Simpler things to try are more thorough investigations into machine-generated
+segmentations. Testing and comparing the state-of-the-art segmentation
+networks, tailoring an SR and segmentation network to a specific domain, and
+experimenting with different types of segmentations such as the object-only
+segmentations of MS COCO \cite{MSCOCO} could yield interesting results and
+offer more insight on how to utilize segmentations.
 
 {\small
 \bibliographystyle{ieee}
