@@ -133,14 +133,15 @@ techniques in order to achieve sharper and more convincing SR results.
 %------------------------------------------------------------------------------
 
 \subsection{Related Work}
+\subsubsection{Super Resolution}
 Basic approaches to SR existed before the advent of deep neural networks.  The
 most naive is nearest neighbor interpolation, which assigns pixels in the
 output image by selecting the spatially nearest corresponding pixel in the
-input image. A more common, superior method which is the standard in many image
-editors is bicubic interpolation, which computes output pixel values as the
-weighted average of a corresponding neighborhood of input pixels. However,
-neither of these methods attempt to use any kind of local or global structure
-in the image or domain knowledge to perform a better reconstruction.
+input image. A superior method which is the standard in many image editors is
+bicubic interpolation, which computes output pixel values as the weighted
+average of a corresponding neighborhood of input pixels. However, neither of
+these methods attempt to use any kind of local or global structure in the image
+or domain knowledge to perform a better reconstruction.
 
 Other, more advanced, non-deep approaches exist for SR. Chung et al.
 \cite{FractalSR} investigate the use of fractal patterns for the task of
@@ -173,6 +174,7 @@ by using an adversarial network. Though they have lower PSNR scores, the images
 often look more realistic, which suggests that a different metric should be
 optimized to get higher-quality results.
 
+\subsubsection{Semantic Segmentation}
 The semantic segmentation task involves predicting, at each pixel of an input
 image, the semantic class of the enclosing object or region from a predefined
 set of classes. Long and Shelhamer et al. \cite{FullyConvolutionalSS} proposed
@@ -188,18 +190,21 @@ knowledge, semantic segmentation data has not been utilized for the SR task.
 Chen and Koltun achieve extremely realistic results for image synthesis using
 solely semantic segmentation data. Their approach has extremely high capacity
 for learning how to synthesize objects and regions based on their semantic
-class and what it sees during training. We believe that this ability can be
-utilized in super-resolution networks to produce more realistic upsamplings. In
-discussions with our peers, some argued that the network should learn object
-boundaries and semantic classes and incorporate this data on its own. However,
-we know that DNNs often need human intervention in order to learn in a certain
-way. One example of this is residual networks \cite{ResNet}. The intuition
+class and what it sees during training. It also can produce a distribution of
+realistic images due to the inherent ambiguity of the segmentation data.  We
+believe that this ability can be utilized in super-resolution networks to
+produce more realistic upsamplings. With the existing low-resolution pixel
+data, we can constrain the set of outputs to a single prediction.
+
+In discussions with our peers, some argued that the network should learn object
+boundaries and semantic classes and incorporate this data on its own if this
+data is useful to the network's predictions. However, DNNs often have
+difficulties learning representations to solve implicit tasks.  The intuition
 behind the benefit of ResNets and the skip connections used is that they assist
-the network in learning identity mappings when they are optimal. Theoretically
-a layer can learn identity mappings, but it is much easier to do so when there
-is a skip connection. Similarly, we believe that explicitly providing semantic
-segmentations will guide the network in learning semantic class-specific
-knowledge and utilizing the class boundaries.
+the network in learning identity mappings when they are optimal.  Similarly, we
+believe that explicitly providing semantic segmentations will guide the network
+in learning semantic class-specific knowledge and utilizing the class
+boundaries.
 
 \subsection{Contribution}
 In this paper, we believe we are the first to explore how the addition of
@@ -273,7 +278,7 @@ calculated using the original image as ground truth.
 \subsection{Human Segmentations}
 To evaluate the plausibility of our approach, we first experimented with using
 human-annotated segmentations. These pixel-wise segmentations are close to
-perfect; if there are any gains to be made with using segmentations, they would
+perfect. If there are any gains to be made with using segmentations, they would
 be most evident with human annotations. Conversely, no improvement using human
 annotations suggests that this approach should be reevaluated before further
 exploration. We primarily use the Cityscapes \cite{Cityscapes} dataset in our
@@ -345,7 +350,7 @@ for the majority of our experiments, but we also experiment with ADE20K to
 demonstrate how a segmentation network optimized for a particular dataset might
 perform. Our baselines are SRResNet and SRGAN (the ResNet- and GAN-based
 approaches of \cite{SRGAN}). Figures \ref{fig:quantResultsCityscapes} and
-\ref{fig:quantResultsADE} show the results of thexe experiments.
+\ref{fig:quantResultsADE} show the results of these experiments.
 
 \begin{figure*}[ht!]
     \begin{center}
@@ -386,9 +391,9 @@ loss. We find that our best approach is SRResNet modified to use human
 segmentations. Both human and machine segmentations also improve the
 performance of SRGAN, while machine segmentations did not improve SRResNet.
 
-We unfortunately did not have enough time to finish running our ADE20K
+Unfortunately, due to time constraints, did not finish running our ADE20K
 experiments to the same extent as the Cityscapes ones, but find a similar
-peformance gain in using SRGAN with human segmentations over bicubic
+performance gain in using SRGAN with human segmentations over bicubic
 interpolation.
 
 \subsection{Mean opinion score (MOS) testing}
@@ -429,7 +434,7 @@ successful calibration.
 Interestingly, despite using a different dataset and group of readers than
 Ledig et al. \cite{SRGAN}, we find that our MOS scores for the baseline,
 nearest neighbor, bicubic, and high-resolution methods are very similar to
-their MOS scores. Though this isn't strong evidence for anything, it might
+their MOS scores. Though this does not constitute strong evidence, it might
 suggest that this method of calibration contributes to a more consistent MOS
 score.
 
@@ -438,7 +443,8 @@ score.
         \includegraphics[trim=0 0 0 0, clip,
             width=3in]{images/mos.png}
     \end{center}
-    \caption{A screenshot of our MOS application. Pictured is an image upsampled with SRGAN.}
+    \caption{A screenshot of our MOS application. Pictured is an image
+    upsampled with SRGAN.}
 \end{figure}
 
 \subsection{Mean preference score testing}
@@ -449,9 +455,10 @@ corresponding baseline results. To investigate this, we designed an experiment
 which we call a mean preference score (MPS) test. We showed our raters two
 side-by-side upsampled versions of the same input image, one generated with a
 baseline approach and the other generated with the same approach but including
-the human-annotated segmentations. We randomized the side our approach appeared
-in and asked each rater to select the image with higher quality. We also
-provided an option for when the images appeared to be identical in quality.
+the human-annotated segmentations. We randomized the side on which our approach
+appeared and asked each rater to select the image with higher quality. We also
+provided an option to indicate that the images appeared to be identical in
+quality.
 
 We define a preference score which is similar but not identical to the
 percentage of the time our method is preferred. Depending on whether our method
@@ -511,12 +518,9 @@ gains are not as pronounced as when using human annotations. We expect that a
 fully-automatic approach will have much better performance gains when using
 more state-of-the-art segmentation networks than the FCN we chose to use.
 Future improvements to the state-of-the-art in the semantic segmentation task
-will give results closer to human-annotated performance. Currently we don't
-believe that the slight increase in performance in using FCN segmentations is
-worth the additional implementation and training time, but stronger
-segmentation networks will result in tangible improvements to super-resolution
-which are both evident in quantitative measurements and discernible to the
-human eye.
+will give results closer to human-annotated performance and will result in
+tangible improvements to super-resolution which are both evident in
+quantitative measurements and discernible to the human eye.
 
 %------------------------------------------------------------------------------
 
@@ -528,7 +532,7 @@ in our project proposal but didn't have time to explore. Two key properties of
 the Cascaded Refinement Network (CRN) of Chen and Koltun \cite{ImageSynthesis}
 come to mind. In a CRN, the input layer is the only semantic layout,
 downsampled to a very small resolution. The feature maps then undergo repeated
-layers of refinement in which the resolution is doublted and the number of
+layers of refinement in which the resolution is doubled and the number of
 feature maps increased (or decreased when approaching output) in each layer. At
 each of these refinement steps, the semantic layout is provided again, scaled
 to the appropriate resolution. In our DNN-based architecture based on
@@ -545,11 +549,11 @@ may allow the network to learn more information about what different semantic
 classes ``look like'' and result in more realistic upsamplings.
 
 Unrelated to CRNs, another possible direction is to explore cases where the
-segmenations could have more impact on the results and be much more important
-for convincing super-resolution. For example, upsampling images which are
-extremely low-resolution may require more semantic class-specific knowledge
-from the network in order to produce realistic objects as there are very few
-signals for texture in very low-res images. A similar situation is using very
+segmentations could have more impact on the results and be more important for
+convincing super-resolution. For example, upsampling images which are extremely
+low-resolution may require more semantic class-specific knowledge from the
+network in order to produce realistic objects as there are very few signals for
+texture in very low resolution images. A similar situation would be using very
 high upsampling factors. This requires the network to hallucinate more
 high-frequency changes in order to produce a result with good textures. In both
 of these extreme cases, semantic segmentations could guide the network in
